@@ -1,3 +1,7 @@
 useDynLib(VICatMix, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
+importFrom(klaR, kmodes)
+importFrom(mcclust.ext, minVI)
+importFrom(mcclust, medv)
+importFrom(mcclust, comp.psm)
 exportPattern("^[[:alpha:]]+")

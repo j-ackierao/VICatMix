@@ -1,0 +1,501 @@
+#' runVICatMixVarSel
+#'
+#' @param data - data frame/matrix with N rows of observations, and P columns of covariates
+#' @param K - maximum number of clusters
+#' @param alpha - Dirichlet prior parameter
+#' @param a - hyperprior variable selection parameter
+#' @param maxiter - maximum number of iterations
+#' @param tol - convergence parameter
+#' @param outcome - optional outcome variable. Default is NA; having an outcome allows for semi-supervised profile regression
+#'
+#'
+#' @returns A list.
+#' 
+#' 
+#' 
+#' 
+#' @importFrom klaR kmodes
+#' @export
+runVICatMixVarSel <- function(data, K, alpha, a, maxiter = 2000, tol = 0.00000005, outcome = NA){
+  
+  #Process dataset
+  if (is.na(outcome)){
+    X <- as.data.frame(data)
+  } else if (!is.na(outcome) & (is.vector(outcome) | is.data.frame(outcome))){
+    X <- as.data.frame(cbind(data, outcome))
+  } else{
+    stop("y is not a vector or a column of a data frame. Please correct")
+  }
+  X[colnames(X)] <- lapply(X[colnames(X)], as.factor)
+  
+  #Data frame mapping factor labels to numbers
+  factor_labels = data.frame()
+  for (i in 1:length(colnames(X))){
+    factorlist <- data.frame(factors = unique(X[,i]), value = as.numeric(unique(X[,i])))
+    factordict <- cbind(data.frame(variable = colnames(X)[i]), factorlist)
+    factor_labels <- rbind(factor_labels, factordict)
+  }
+  
+  #Check for any completely empty factors as these may cause problems
+  categories <- lapply(1:ncol(X), function(j)levels(X[, j])) 
+  cat_lengths <- sapply(categories, length)
+  if(any(cat_lengths == 0)) {
+    stop("Column(s) ", paste0(colnames(X)[cat_lengths == 0], collapse = ","), " is empty")
+  }
+  
+  #Create numeric matrix for data
+  if (is.na(outcome)){
+    X <- data.matrix(X)
+  } else if (!is.na(outcome)){
+    X <- data.matrix(X)
+    y <- X[,dim(X)[2]]
+    X <- X[,1:(dim(X)[2] - 1)]
+  }
+  
+  N = dim(X)[1]
+  D = dim(X)[2]
+  
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  ELBO = Cl = rep(-Inf,maxiter*2) #record ELBO and no of clusters at each iteration
+  
+  #Define priors
+  
+  prior = list(alpha = alpha) #prior for clustering pi
+  prior$eps = matrix(0, D, maxNCat) #prior for clustering phi
+  for(d in 1:D){
+    prior$eps [d,1:nCat[d]] <- 1/nCat[d]
+  }
+  prior$a = a
+  
+  #Prior for profile regression
+  if (!is.na(outcome)){
+    J <- length(unique(y))
+    prior$beta = rep(1/J,each=J)
+  }
+  
+  #Initialising cluster labels
+  clusterInit <- klaR::kmodes(X, modes = K)$cluster #k modes: analogous to k means
+  
+  EPSreshape = t(prior$eps) 
+  dim(EPSreshape) = c(1,maxNCat,D) 
+  model = list(alpha = rep(prior$alpha, K),
+               eps = EPSreshape[rep(1,K),,],
+               c = rep(1, D), #initialise c_i - all variables initially included
+               labels = clusterInit) 
+  
+  #Setting null phi to the rate of the parameter value in the dataset - max likelihood
+  nullphi <- array(0, dim = c(D, maxNCat))
+  for (i in 1:D){
+    for (j in 1:nCat[i]){
+      nullphi[i, j] <- sum((X[,i] == j)) / N
+    }
+  }
+  model$nullphi <- nullphi
+  
+  model$eps <- .firstepsCalc(K, maxNCat, D, N, prior$eps, X, clusterInit)
+  
+  #WRITE CPP FUNCTION FOR THIS
+  if (!is.na(outcome)){
+    model$beta <- matrix(rep(prior$beta,K),ncol=J,byrow=TRUE)
+    for(j in 1:J){
+      for(k in 1:K){
+        model$beta[k, j] <- prior$beta[j] + sum((y==j)*(clusterInit==k))
+      }
+    }
+  }
+  
+  if (is.na(outcome)){
+    for (iter in 1:maxiter){
+      print(paste("Iteration number ",iter))
+      model = .expectStepVarSel(X, model) #Expectation step
+      .GlobalEnv$maxNCat <- maxNCat
+      ELBO[iter * 2-1] = .ELBOCalcVarSel(X, model, prior) #ELBO
+      print(ELBO[iter * 2-1])
+      Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
+      
+      model = .maxStepVarSel(X, model, prior) #Maximisation step
+      ELBO[iter * 2] = .ELBOCalcVarSel(X, model, prior) #ELBO
+      print(ELBO[iter * 2])
+      Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
+      
+      if(.check_convergence(ELBO, iter, maxiter, tol)) break
+      
+    }
+  }
+  
+  if (!is.na(outcome)){
+    for (iter in 1:maxiter){
+      print(paste("Iteration number ",iter))
+      model = .expectStepProfCat(X, model) #Expectation step
+      .GlobalEnv$maxNCat <- maxNCat
+      ELBO[iter * 2-1] = .ELBOCalcProfCat(X, model, prior) #ELBO
+      print(ELBO[iter * 2-1])
+      Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
+      
+      model = .maxStepProfCat(X, model, prior) #Maximisation step
+      ELBO[iter * 2] = .ELBOCalcProfCat(X, model, prior) #ELBO
+      print(ELBO[iter * 2])
+      Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
+      
+      if(.check_convergence(ELBO, iter, maxiter, tol)) break
+      
+    }
+  }
+  
+  output <- list(ELBO = ELBO[1:(iter*2)], Cl = Cl[1:iter], model = model, factor_labels = factor_labels)
+  return(output)
+  
+}
+
+#' @keywords internal
+
+.expectStepVarSel <- function(X, model){
+  #Model should contain all current parameters: parameters alpha, epsilon, labels
+  
+  alpha <- model$alpha
+  eps <- model$eps
+  c <- model$c
+  nullphi <- model$nullphi
+  
+  N = dim(X)[1]
+  D = dim(X)[2]
+  K = length(model$alpha)
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  Elogpi <- digamma(alpha) - digamma(sum(alpha)) #k dim vector, expectation of log pi k
+  
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  
+  carray <- replicate(N, matrix(rep(c, K), ncol = D, byrow = TRUE), simplify="array") * Elogphi
+  #array of c_i * Elogphi
+  cmatrix <- .cmatrixCalc(nullphi, X, c, N, D) #1 - c_i * phi_0ixni
+  
+  logrhonk <- .logrhonkCalcVarSel(Elogpi, carray, cmatrix, K, D, N)
+  lse <- matrixStats::rowLogSumExps(logrhonk)
+  rnk <- .rnkCalc(logrhonk, lse, N, K)
+  
+  labels <- apply(rnk, 1, which.max) #k with the highest responsibility is the cluster that zn is assigned to
+  
+  model$rnk <- rnk #update responsibilities in model
+  model$labels <- labels #update labels in model
+  
+  return(model)
+  
+}
+
+#' @keywords internal
+#' 
+
+.maxStepVarSel <- function(X, model, prior){
+  #Model should contain all current parameters: parameters alpha, epsilon, rnk, c, labels, need prior
+  prioralpha <- prior$alpha
+  prioreps <- prior$eps
+  a <- prior$a
+  
+  rnk <- model$rnk
+  c <- model$c
+  nullphi <- model$nullphi
+  
+  N = dim(X)[1]
+  D = dim(X)[2]
+  K = length(model$alpha)
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  #Parameters for pi update - Dirichlet
+  alpha <- prioralpha + colSums(rnk)
+  
+  #Parameters for phi update - Dirichlet
+  eps <- .epsCalcVarSel(K, maxNCat, D, N, prioreps, X, rnk, c)
+  
+  #First calculate c_i
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  lognullphi <- .lognullphiCalc(nullphi, X, K, D, N) #phi_0ixni
+  
+  Elogdelta <- digamma(c + a) - digamma(2*a + 1)
+  Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
+  
+  logeta1 <- as.vector(.logeta1Calc(Elogphi, rnk, Elogdelta, K, D, N))
+  logeta2 <- as.vector(.logeta2Calc(lognullphi, rnk, Elogminusdelta, K, D, N))
+  logetas <- matrix(c(logeta1, logeta2), nrow = D, ncol = 2)
+  
+  clse <- matrixStats::rowLogSumExps(logetas)
+  c <- as.vector(.cCalc(logeta1, clse, D))
+  
+  model$alpha <- alpha #update alpha* in model
+  model$eps <- eps #update epsilon* in model
+  model$c <- c #update c in model
+  return(model)
+}
+
+#' @keywords internal
+#' 
+
+.ELBOCalcVarSel <- function(X, model, prior){
+  N = dim(X)[1]
+  D = dim(X)[2]
+  K = length(model$alpha)
+  
+  EPSreshape = t(prior$eps) 
+  dim(EPSreshape) = c(1,maxNCat,D)
+  prior2 = list(alpha = rep(prior$alpha, K),
+                eps = EPSreshape[rep(1,K),,])
+  prioralpha <- prior2$alpha
+  prioreps <- prior2$eps
+  a <- prior$a
+  
+  alpha <- model$alpha
+  eps <- model$eps
+  rnk <- model$rnk
+  c <- model$c
+  nullphi <- model$nullphi
+  
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  
+  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat, nCat)
+  
+  Elogdelta <- digamma(c + a) - digamma(2*a + 1)
+  Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
+  
+  #(log) normalising constants of Dirichlet
+  Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
+  Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
+  Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
+  Cposteps <- .CpostepsCalc(eps, K, D, nCat)
+  Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
+  Cpostdelta <- as.vector(.CpostdeltaCalc(c, a, D))
+  
+  #Calculations
+  
+  carray <- replicate(N, matrix(rep(c, K), ncol = D, byrow = TRUE), simplify="array") * Elogphi
+  #array of c_i * Elogphi
+  cmatrix <- .cmatrixCalc(nullphi, X, c, N, D)
+  sumDElogphi <- .sumDElogphiCalcVarSel(carray, cmatrix, K, D, N)
+
+  priorepsminusone <- .priorepsminusoneCalc(prioreps, K, D, maxNCat)
+  epsminusone <- .epsminusoneCalc(eps, K, D, maxNCat)
+  
+  matExp1 <- rnk * sumDElogphi
+  
+  Exp1 <- sum(matExp1) #E(logp(X|Z,phi)) 
+  
+  matExp2 <- rnk * matrix(rep(Elogpi,N), ncol = K, byrow = TRUE)
+  
+  Exp2 <- sum(matExp2) #E(logp(Z|pi)) 
+  
+  Exp3 <- sum((prioralpha - 1)*Elogpi) + Cprioralpha #E(logp(pi)) 
+  
+  Exp4 <- sum((priorepsminusone)*ElogphiL) + sum(Cprioreps) #E(logp(phi)) 
+  
+  Exp5 <- sum((c * Elogdelta) + (1-c)*Elogminusdelta) #E(logp(gamma|delta)) 
+  
+  Exp6 <- sum((a - 1) * Elogdelta + (a - 1) * Elogminusdelta + Cpriordelta) #E(logp(delta)) 
+  
+  logrnk <- log(rnk)
+  logrnk[logrnk == -Inf] <- 0
+  Exp7 <- sum(rnk * logrnk) #E(q(Z)) 
+  
+  Exp8 <- sum((alpha - 1)*Elogpi) + Cpostalpha #E(logq(pi)) 
+  
+  Exp9 <- sum((epsminusone)*ElogphiL) + sum(Cposteps) #Elogq(phi) 
+  
+  matExp10 <- (c * log(c)) + ((1-c) * log(1-c))
+  matExp10[is.na(matExp10)] <- 0
+  
+  Exp10 <- sum(matExp10) #Elogq(gamma) 
+  
+  Exp11 <- sum((c + a - 1) * Elogdelta + (a - c) * Elogminusdelta + Cpostdelta) #Elogq(delta) 
+  
+  ELBO <- Exp1 + Exp2 + Exp3 + Exp4 + Exp5 + Exp6 - Exp7 - Exp8 - Exp9 - Exp10 - Exp11
+  
+}
+
+#' @keywords internal
+#' 
+
+.expectStepProfCat <- function(X, y, model){
+  #Model should contain all current parameters: parameters alpha, epsilon, c, labels
+  #Add parameter rnk (responsibilities) in this step; this is the first step before maximisation
+  
+  alpha <- model$alpha
+  eps <- model$eps
+  c <- model$c
+  nullphi <- model$nullphi
+  beta <- model$beta
+  
+  N = dim(X)[1]
+  D = dim(X)[2]
+  K = length(model$alpha)
+  J = dim(beta)[2]
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  Elogpi <- digamma(alpha) - digamma(sum(alpha)) #k dim vector, expectation of log pi k
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  Elogtheta <- .ElogthetaCalcCat(beta, K, J)
+  
+  carray <- replicate(N, matrix(rep(c, K), ncol = D, byrow = TRUE), simplify="array") * Elogphi
+  cmatrix <- .cmatrixCalc(nullphi, X, c, N, D)
+  
+  logrhonk <- .logrhonkCalcProfCat(Elogpi, Elogtheta, y, carray, cmatrix, K, D, N)
+  lse <- matrixStats::rowLogSumExps(logrhonk)
+  rnk <- .rnkCalc(logrhonk, lse, N, K)
+  
+  labels <- apply(rnk, 1, which.max) 
+  
+  model$rnk <- rnk 
+  model$labels <- labels 
+  
+  return(model)
+  
+  
+}
+
+#' @keywords internal
+#' 
+
+.maxStepProfCat <- function(X, y, model, prior){
+  prioralpha <- prior$alpha
+  prioreps <- prior$eps
+  priorbeta <- prior$beta
+  a <- prior$a
+  
+  rnk <- model$rnk
+  c <- model$c
+  nullphi <- model$nullphi
+  
+  N = dim(X)[1]
+  D = dim(X)[2]
+  K = length(model$alpha)
+  J = dim(model$beta)[2]
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  #Parameters for pi update - Dirichlet
+  alpha <- prioralpha + colSums(rnk)
+  
+  #Parameters for phi and theta update - Dirichlet
+  eps <- .epsCalcVarSel(K, maxNCat, D, N, prioreps, X, rnk, c)
+  beta <- .betaCalc(priorbeta, y, K, J, N, rnk)
+  
+  #First calculate c_i
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  lognullphi <- .lognullphiCalc(nullphi, X, K, D, N) #phi_0ixni
+  
+  Elogdelta <- digamma(c + a) - digamma(2*a + 1)
+  Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
+  
+  logeta1 <- as.vector(.logeta1Calc(Elogphi, rnk, Elogdelta, K, D, N))
+  logeta2 <- as.vector(.logeta2Calc(lognullphi, rnk, Elogminusdelta, K, D, N))
+  logetas <- matrix(c(logeta1, logeta2), nrow = D, ncol = 2)
+  
+  clse <- matrixStats::rowLogSumExps(logetas)
+  c <- as.vector(.cCalc(logeta1, clse, D))
+  
+  model$alpha <- alpha #update alpha* in model
+  model$eps <- eps #update epsilon* in model
+  model$c <- c #update c in model
+  model$beta <- beta #update beta* in model
+  return(model)
+}
+
+#' @keywords internal
+#' 
+.ELBOCalcProfCat <- function(X, y, model, prior){
+  N = dim(X)[1]
+  D = dim(X)[2]
+  J = dim(model$beta)[2]
+  K = length(model$alpha)
+  
+  EPSreshape = t(prior$eps) 
+  dim(EPSreshape) = c(1,maxNCat,D)
+  prior2 = list(alpha = rep(prior$alpha, K),
+                eps = EPSreshape[rep(1,K),,])
+  prioralpha <- prior2$alpha
+  prioreps <- prior2$eps
+  a <- prior$a
+  priorbeta <- prior$beta
+  
+  alpha <- model$alpha
+  eps <- model$eps
+  rnk <- model$rnk
+  c <- model$c
+  nullphi <- model$nullphi
+  beta <- model$beta
+  
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  Elogpi <- digamma(alpha) - digamma(sum(alpha)) #Taken from E step
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  
+  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat, nCat)
+  
+  Elogdelta <- digamma(c + a) - digamma(2*a + 1)
+  Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
+  Elogtheta <- .ElogthetaCalcCat(beta, K, J)
+  
+  Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
+  Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
+  Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
+  Cposteps <- .CpostepsCalc(eps, K, D, nCat)
+  Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
+  Cpostdelta <- .CpostdeltaCalc(c, a, D)
+  Cpriortheta <- .CpriorbetaCalc(priorbeta, K, J)
+  Cposttheta <- .CpostbetaCalc(beta, K, J)
+  
+  carray <- replicate(N, matrix(rep(c, K), ncol = D, byrow = TRUE), simplify="array") * Elogphi
+  #c_i * Elogphi
+  cmatrix <- .cmatrixCalc(nullphi, X, c, N, D) #c_i * phi_0ixni
+  
+  sumDElogphi <- .sumDElogphiCalcVarSel(carray, cmatrix, K, D, N)
+  
+  priorepsminusone <- .priorepsminusoneCalc(prioreps, K, D, maxNCat)
+  epsminusone <- .epsminusoneCalc(eps, K, D, maxNCat)
+  
+  resptheta <- .respthetaCalc(Elogtheta, rnk, y, N, K)
+  matExp1 <- rnk * sumDElogphi
+  
+  Exp1 <- sum(resptheta) + sum(matExp1) #E(logp(X, Y|Z,phi, theta, gamma)) #DONE
+  
+  matExp2 <- rnk * matrix(rep(Elogpi,N), ncol = K, byrow = TRUE)
+  
+  Exp2 <- sum(matExp2) #E(logp(Z|pi)) #STAYS THE SAME
+  
+  Exp3 <- sum((prioralpha - 1)*Elogpi) + Cprioralpha #E(logp(pi)) STAYS THE SAME
+  
+  Exp4 <- sum((priorepsminusone)*ElogphiL) + sum(Cprioreps) #E(logp(phi)) STAYS THE SAME
+  
+  Exp5 <- sum((c * Elogdelta) + (1-c)*Elogminusdelta) #E(logp(gamma|delta)) STAYS THE SAME
+  
+  Exp6 <- sum((a - 1) * Elogdelta + (a - 1) * Elogminusdelta + Cpriordelta) #E(logp(delta)) STAYS THE SAME
+  
+  Exp7 <- sum((priorbeta - 1) * Elogtheta) + sum(Cpriortheta) #Elogptheta DONE
+  
+  logrnk <- log(rnk)
+  logrnk[logrnk == -Inf] <- 0
+  Exp8 <- sum(rnk * logrnk) #E(q(Z)) #STAYS THE SAME
+  
+  Exp9 <- sum((alpha - 1)*Elogpi) + Cpostalpha #E(logq(pi)) #STAYS THE SAME
+  
+  Exp10 <- sum((epsminusone)*ElogphiL) + sum(Cposteps) #Elogq(phi) #STAYS THE SAME
+  
+  matExp11 <- (c * log(c)) + ((1-c) * log(1-c))
+  matExp11[is.na(matExp11)] <- 0
+  
+  Exp11 <- sum(matExp11) #Elogq(gamma) 
+  
+  Exp12 <- sum((c + a - 1) * Elogdelta + (a - c) * Elogminusdelta + Cpostdelta) #Elogq(delta) 
+  
+  Exp13 <- sum((beta - 1) * Elogtheta) + sum(Cposttheta) #E(logq(theta)) 
+  
+  ELBO <- Exp1 + Exp2 + Exp3 + Exp4 + Exp5 + Exp6 + Exp7 - Exp8 - Exp9 - Exp10 - Exp11 - Exp12 - Exp13
+  
+}
+

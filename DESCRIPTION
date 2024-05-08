@@ -1,13 +1,27 @@
-Package: VICatMix
 Type: Package
+Package: VICatMix
 Title: Variational Mixture Models for Clustering Categorical Data
 Version: 1.0
 Date: 2024-03-25
 Author: Jackie Rao
 Maintainer: Jackie Rao <jackie.rao@mrc-bsu.cam.ac.uk>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
-Imports: Rcpp (>= 1.0.12)
-LinkingTo: Rcpp, RcppArmadillo
+Description: More about what it does.
+License: GPL (>= 3)
 URL: https://github.com/j-ackierao/VICatMix
 BugReports: https://github.com/j-ackierao/VICatMix/issues
+Imports: 
+    klaR,
+    matrixStats,
+    mcclust,
+    mcclust.ext,
+    Rcpp (>= 1.0.12),
+Suggests:
+    doParallel,
+    doRNG,
+    foreach,
+    parallel
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
+Encoding: UTF-8
+RoxygenNote: 7.3.1
