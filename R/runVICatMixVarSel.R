@@ -1,11 +1,11 @@
 #' runVICatMixVarSel
 #'
-#' @param data - data frame/matrix with N rows of observations, and P columns of covariates
-#' @param K - maximum number of clusters
+#' @param data - a data frame/matrix with N rows of observations, and P columns of covariates
+#' @param K - maximum number of clusters desired.
 #' @param alpha - Dirichlet prior parameter
-#' @param a - hyperprior variable selection parameter
-#' @param maxiter - maximum number of iterations
-#' @param tol - convergence parameter
+#' @param a - hyperparameter for variable selection Beta hyperprior.
+#' @param maxiter - maximum number of iterations. Default is 2000.
+#' @param tol - convergence parameter. Default is 0.00000005
 #' @param outcome - optional outcome variable. Default is NA; having an outcome allows for semi-supervised profile regression
 #'
 #'
@@ -85,24 +85,12 @@ runVICatMixVarSel <- function(data, K, alpha, a, maxiter = 2000, tol = 0.0000000
                labels = clusterInit) 
   
   #Setting null phi to the rate of the parameter value in the dataset - max likelihood
-  nullphi <- array(0, dim = c(D, maxNCat))
-  for (i in 1:D){
-    for (j in 1:nCat[i]){
-      nullphi[i, j] <- sum((X[,i] == j)) / N
-    }
-  }
-  model$nullphi <- nullphi
+  model$nullphi <- .nullphiCalc(X, nCat, maxNCat, D, N)
   
   model$eps <- .firstepsCalc(K, maxNCat, D, N, prior$eps, X, clusterInit)
   
-  #WRITE CPP FUNCTION FOR THIS
   if (!is.na(outcome)){
-    model$beta <- matrix(rep(prior$beta,K),ncol=J,byrow=TRUE)
-    for(j in 1:J){
-      for(k in 1:K){
-        model$beta[k, j] <- prior$beta[j] + sum((y==j)*(clusterInit==k))
-      }
-    }
+    model$beta <- .firstbetaCalc(y, prior$beta, K, J, N, clusterInit)
   }
   
   if (is.na(outcome)){
@@ -432,7 +420,7 @@ runVICatMixVarSel <- function(data, K, alpha, a, maxiter = 2000, tol = 0.0000000
   nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
   maxNCat <- max(nCat)
   
-  Elogpi <- digamma(alpha) - digamma(sum(alpha)) #Taken from E step
+  Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
   Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
   
   ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat, nCat)
@@ -462,38 +450,38 @@ runVICatMixVarSel <- function(data, K, alpha, a, maxiter = 2000, tol = 0.0000000
   resptheta <- .respthetaCalc(Elogtheta, rnk, y, N, K)
   matExp1 <- rnk * sumDElogphi
   
-  Exp1 <- sum(resptheta) + sum(matExp1) #E(logp(X, Y|Z,phi, theta, gamma)) #DONE
+  Exp1 <- sum(resptheta) + sum(matExp1) #E(logp(X, Y|Z,phi, theta, gamma)) 
   
   matExp2 <- rnk * matrix(rep(Elogpi,N), ncol = K, byrow = TRUE)
   
-  Exp2 <- sum(matExp2) #E(logp(Z|pi)) #STAYS THE SAME
+  Exp2 <- sum(matExp2) #E(logp(Z|pi)) 
   
-  Exp3 <- sum((prioralpha - 1)*Elogpi) + Cprioralpha #E(logp(pi)) STAYS THE SAME
+  Exp3 <- sum((prioralpha - 1)*Elogpi) + Cprioralpha #E(logp(pi)) 
   
-  Exp4 <- sum((priorepsminusone)*ElogphiL) + sum(Cprioreps) #E(logp(phi)) STAYS THE SAME
+  Exp4 <- sum((priorepsminusone)*ElogphiL) + sum(Cprioreps) #E(logp(phi)) 
   
-  Exp5 <- sum((c * Elogdelta) + (1-c)*Elogminusdelta) #E(logp(gamma|delta)) STAYS THE SAME
+  Exp5 <- sum((c * Elogdelta) + (1-c)*Elogminusdelta) #E(logp(gamma|delta)) 
   
-  Exp6 <- sum((a - 1) * Elogdelta + (a - 1) * Elogminusdelta + Cpriordelta) #E(logp(delta)) STAYS THE SAME
+  Exp6 <- sum((a - 1) * Elogdelta + (a - 1) * Elogminusdelta + Cpriordelta) #E(logp(delta)) 
   
-  Exp7 <- sum((priorbeta - 1) * Elogtheta) + sum(Cpriortheta) #Elogptheta DONE
+  Exp7 <- sum((priorbeta - 1) * Elogtheta) + sum(Cpriortheta) #Elogptheta 
   
   logrnk <- log(rnk)
   logrnk[logrnk == -Inf] <- 0
-  Exp8 <- sum(rnk * logrnk) #E(q(Z)) #STAYS THE SAME
+  Exp8 <- sum(rnk * logrnk) #E(q(Z)) 
   
-  Exp9 <- sum((alpha - 1)*Elogpi) + Cpostalpha #E(logq(pi)) #STAYS THE SAME
+  Exp9 <- sum((alpha - 1)*Elogpi) + Cpostalpha #E(logq(pi))
   
-  Exp10 <- sum((epsminusone)*ElogphiL) + sum(Cposteps) #Elogq(phi) #STAYS THE SAME
+  Exp10 <- sum((epsminusone)*ElogphiL) + sum(Cposteps) #Elogq(phi) 
   
   matExp11 <- (c * log(c)) + ((1-c) * log(1-c))
   matExp11[is.na(matExp11)] <- 0
   
   Exp11 <- sum(matExp11) #Elogq(gamma) 
   
-  Exp12 <- sum((c + a - 1) * Elogdelta + (a - c) * Elogminusdelta + Cpostdelta) #Elogq(delta) 
+  Exp12 <- sum((c + a - 1) * Elogdelta + (a - c) * Elogminusdelta + Cpostdelta) 
   
-  Exp13 <- sum((beta - 1) * Elogtheta) + sum(Cposttheta) #E(logq(theta)) 
+  Exp13 <- sum((beta - 1) * Elogtheta) + sum(Cposttheta) 
   
   ELBO <- Exp1 + Exp2 + Exp3 + Exp4 + Exp5 + Exp6 + Exp7 - Exp8 - Exp9 - Exp10 - Exp11 - Exp12 - Exp13
   

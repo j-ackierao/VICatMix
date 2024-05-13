@@ -260,6 +260,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nullphiCalc
+NumericMatrix nullphiCalc(NumericMatrix X, NumericVector nCat, double maxNCat, double D, double N);
+RcppExport SEXP _VICatMix_nullphiCalc(SEXP XSEXP, SEXP nCatSEXP, SEXP maxNCatSEXP, SEXP DSEXP, SEXP NSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type nCat(nCatSEXP);
+    Rcpp::traits::input_parameter< double >::type maxNCat(maxNCatSEXP);
+    Rcpp::traits::input_parameter< double >::type D(DSEXP);
+    Rcpp::traits::input_parameter< double >::type N(NSEXP);
+    rcpp_result_gen = Rcpp::wrap(nullphiCalc(X, nCat, maxNCat, D, N));
+    return rcpp_result_gen;
+END_RCPP
+}
+// firstbetaCalc
+NumericMatrix firstbetaCalc(NumericVector y, NumericVector priorbeta, double K, double J, double N, NumericVector clusterInit);
+RcppExport SEXP _VICatMix_firstbetaCalc(SEXP ySEXP, SEXP priorbetaSEXP, SEXP KSEXP, SEXP JSEXP, SEXP NSEXP, SEXP clusterInitSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type priorbeta(priorbetaSEXP);
+    Rcpp::traits::input_parameter< double >::type K(KSEXP);
+    Rcpp::traits::input_parameter< double >::type J(JSEXP);
+    Rcpp::traits::input_parameter< double >::type N(NSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type clusterInit(clusterInitSEXP);
+    rcpp_result_gen = Rcpp::wrap(firstbetaCalc(y, priorbeta, K, J, N, clusterInit));
+    return rcpp_result_gen;
+END_RCPP
+}
 // lognullphiCalc
 arma::cube lognullphiCalc(arma::mat nullphi, arma::mat X, double K, double D, double N);
 RcppExport SEXP _VICatMix_lognullphiCalc(SEXP nullphiSEXP, SEXP XSEXP, SEXP KSEXP, SEXP DSEXP, SEXP NSEXP) {
@@ -419,6 +450,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VICatMix_CpriorbetaCalc", (DL_FUNC) &_VICatMix_CpriorbetaCalc, 3},
     {"_VICatMix_CpostbetaCalc", (DL_FUNC) &_VICatMix_CpostbetaCalc, 3},
     {"_VICatMix_respthetaCalc", (DL_FUNC) &_VICatMix_respthetaCalc, 5},
+    {"_VICatMix_nullphiCalc", (DL_FUNC) &_VICatMix_nullphiCalc, 5},
+    {"_VICatMix_firstbetaCalc", (DL_FUNC) &_VICatMix_firstbetaCalc, 6},
     {"_VICatMix_lognullphiCalc", (DL_FUNC) &_VICatMix_lognullphiCalc, 5},
     {"_VICatMix_logrhonkCalcVarSel", (DL_FUNC) &_VICatMix_logrhonkCalcVarSel, 6},
     {"_VICatMix_epsCalcVarSel", (DL_FUNC) &_VICatMix_epsCalcVarSel, 8},

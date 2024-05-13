@@ -89,3 +89,39 @@ NumericMatrix respthetaCalc(NumericMatrix Elogtheta, NumericMatrix rnk, NumericV
   return v;
 }
 
+// [[Rcpp::export(name = ".nullphiCalc")]]
+NumericMatrix nullphiCalc(NumericMatrix X, NumericVector nCat, double maxNCat, double D, double N) {
+  NumericMatrix v(D, maxNCat);
+  for (int d = 0; d < D; d++){
+    double J = nCat[d];
+    for (int j = 0; j < J; j++){
+      double sum = 0; // Sum value
+      for (int n = 0; n < N; n++){
+        if(X(n,d) == J+1){
+          sum += 1;
+        } 
+      }
+      v(d, j) = sum / N;
+
+    }
+  }
+  return v;
+}
+
+// [[Rcpp::export(name = ".firstbetaCalc")]]
+NumericMatrix firstbetaCalc(NumericVector y, NumericVector priorbeta, double K, double J, double N, NumericVector clusterInit) {
+  NumericMatrix v(K, J);
+  for (int k = 0; k < K; k++){
+    for (int j = 0; j < J; j++){
+      double sum = 0; // Sum value
+      for (int n = 0; n < N; n++){
+        if(clusterInit(n) == k + 1 && y(n) == j+1){
+          sum += 1;
+        } 
+      }
+      v(k, j) = priorbeta(j) + sum;
+    }
+  }
+  return v;
+}
+

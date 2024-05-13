@@ -69,6 +69,14 @@
     .Call(`_VICatMix_respthetaCalc`, Elogtheta, rnk, y, N, K)
 }
 
+.nullphiCalc <- function(X, nCat, maxNCat, D, N) {
+    .Call(`_VICatMix_nullphiCalc`, X, nCat, maxNCat, D, N)
+}
+
+.firstbetaCalc <- function(y, priorbeta, K, J, N, clusterInit) {
+    .Call(`_VICatMix_firstbetaCalc`, y, priorbeta, K, J, N, clusterInit)
+}
+
 .lognullphiCalc <- function(nullphi, X, K, D, N) {
     .Call(`_VICatMix_lognullphiCalc`, nullphi, X, K, D, N)
 }
