@@ -97,7 +97,7 @@ NumericMatrix nullphiCalc(NumericMatrix X, NumericVector nCat, double maxNCat, d
     for (int j = 0; j < J; j++){
       double sum = 0; // Sum value
       for (int n = 0; n < N; n++){
-        if(X(n,d) == J+1){
+        if(X(n,d) == j+1){
           sum += 1;
         } 
       }
