@@ -1,17 +1,48 @@
 #' runVICatMix
 #'
-#' @param data - data frame/matrix with N rows of observations, and P columns of covariates
-#' @param K - maximum number of clusters
-#' @param alpha - Dirichlet prior parameter
-#' @param maxiter - maximum number of interations
-#' @param tol - convergence parameter
+#' Perform a run of the VICatMix model on a data-frame with no variable
+#' selection imposed.
+#'
+#' @param data A data frame or data matrix with N rows of observations, and P
+#'   columns of covariates.
+#' @param K Maximum number of clusters desired.
+#' @param alpha The Dirichlet prior parameter. Recommended to set this to a
+#'   number < 1.
+#' @param maxiter The maximum number of iterations for the algorithm. Default is
+#'   2000.
+#' @param tol A convergence parameter. Default is 5x10^-8.
 #'
 #'
-#' @returns A list.
-#' 
-#' 
-#' 
-#' 
+#' @returns A list with the following components: (maxNCat refers to the maximum
+#'   number of categories for any covariate in the data) 
+#'   \item{labels}{A numeric vector listing the cluster assignments for the 
+#'   observations.} 
+#'   \item{ELBO}{A numeric vector tracking the value of the ELBO in every 
+#'   iteration.}
+#'   \item{Cl}{A numeric vector tracking the number of clusters in every 
+#'   iteration.}
+#'   \item{model}{A list containing all variational model parameters and the 
+#'   cluster labels:
+#'  \describe{
+#'      \item{alpha}{A K-length vector of Dirichlet parameters for alpha.}
+#'      \item{eps}{A K x maxNCat x P array of Dirichlet parameters for epsilon.}
+#'      \item{labels}{A numeric vector listing the cluster assignments for the 
+#'      observations.}
+#'      \item{rnk}{A N x K matrix of responsibilities for the latent variables 
+#'      Z.}
+#'    }
+#'  }
+#'   \item{factor_labels}{A data frame showing how variable categories
+#'   correspond to numeric factor labels in the model.}
+#'
+#' @examples
+#' # example code
+#' result <- runVICatMix(zoo, 10, 0.01)
+#'
+#' print(result$labels)
+#'
+#'
+#'
 #' @importFrom klaR kmodes
 #' @export
 runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005){
@@ -82,7 +113,7 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005){
     
   }
   
-  output <- list(ELBO = ELBO[1:(iter*2)], Cl = Cl[1:iter], model = model, factor_labels = factor_labels)
+  output <- list(labels = model$labels, ELBO = ELBO[1:(iter*2)], Cl = Cl[1:iter], model = model, factor_labels = factor_labels)
   return(output)
   
 }

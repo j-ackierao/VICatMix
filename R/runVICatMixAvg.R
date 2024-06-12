@@ -1,20 +1,44 @@
 #' runVICatMixAvg
 #'
-#' @param data - data frame/matrix with N rows of observations, and P columns of covariates
-#' @param K - maximum number of clusters
-#' @param alpha - Dirichlet prior parameter
-#' @param maxiter - maximum number of interations
-#' @param tol - convergence parameter
-#' @param inits - number of initialisations in the co-clustering matrix. Default 25
-#' @param loss - loss function used in co-clustering matrix. Default VoIcomp. Options are "VoIavg", "VoIcomp" and "medv".
-#' @param parallel - whether to use parallelisation to run initialisations
-#' @param cores - Uses same default as mcclapply; user can specify number of cores for parallelisation if parallel = TRUE. Package automatically uses the user's parallel backend if one has already been registered.
+#' An extension of `runVICatMix` to incorporate model averaging/summarisation
+#' over multiple initialisations.
 #'
-#' @returns A list containing the averaged labels, as well as the results of each mixture model initialisation.
-#' 
-#' 
-#' 
-#' 
+#' @param data A data frame or data matrix with N rows of observations, and P
+#'   columns of covariates.
+#' @param K Maximum number of clusters desired.
+#' @param alpha The Dirichlet prior parameter. Recommended to set this to a
+#'   number < 1.
+#' @param maxiter The maximum number of iterations for the algorithm. Default is
+#'   2000.
+#' @param tol A convergence parameter. Default is 5x10^-8.
+#' @param inits The number of initialisations included in the co-clustering
+#'   matrix. Default is 25.
+#' @param loss The loss function to be used with the co-clustering matrix.
+#'   Default is VoIcomp. Options are "VoIavg", "VoIcomp" and "medv".
+#' @param parallel Logical value indicating whether to run initialisations in
+#'   parallel. Default is FALSE.
+#' @param cores User can specify number of cores for parallelisation if parallel
+#'   = TRUE. Package automatically uses the user's parallel backend if one has
+#'   already been registered.
+#'
+#' @returns A list with the following components: (maxNCat refers to the maximum
+#'   number of categories for any covariate in the data)
+#'   \item{labels_avg}{A numeric N-vector listing the cluster assignments for 
+#'   the observations in the averaged model.}
+#'   \item{init_results}{A list where each entry is the cluster assignments for 
+#'   one of the initialisations included in the model averaging.}
+#'
+#'
+#' @examples
+#' # example code
+#' result <- runVICatMixAvg(zoo, 10, 0.01)
+#'
+#' print(result$labels_avg)
+#'
+#'
+#'
+#' @seealso \code{\link{runVICatMix}}
+#'
 #' @importFrom mcclust.ext minVI
 #' @importFrom mcclust medv
 #' @importFrom mcclust comp.psm

@@ -17,27 +17,41 @@ runVICatMixAvg(
 )
 }
 \arguments{
-\item{data}{- data frame/matrix with N rows of observations, and P columns of covariates}
+\item{data}{A data frame or data matrix with N rows of observations, and P columns of covariates.}
 
-\item{K}{- maximum number of clusters}
+\item{K}{Maximum number of clusters desired.}
 
-\item{alpha}{- Dirichlet prior parameter}
+\item{alpha}{The Dirichlet prior parameter. Recommended to set this to a number < 1.}
 
-\item{maxiter}{- maximum number of interations}
+\item{maxiter}{The maximum number of iterations for the algorithm. Default is 2000.}
 
-\item{tol}{- convergence parameter}
+\item{tol}{A convergence parameter. Default is 5x10^-8.}
 
-\item{inits}{- number of initialisations in the co-clustering matrix. Default 25}
+\item{inits}{The number of initialisations included in the co-clustering matrix. Default is 25.}
 
-\item{loss}{- loss function used in co-clustering matrix. Default VoIcomp. Options are "VoIavg", "VoIcomp" and "medv".}
+\item{loss}{The loss function to be used with the co-clustering matrix. Default is VoIcomp. Options are "VoIavg", "VoIcomp" and "medv".}
 
-\item{parallel}{- whether to use parallelisation to run initialisations}
+\item{parallel}{Logical value indicating whether to run initialisations in parallel. Default is FALSE.}
 
-\item{cores}{- Uses same default as mcclapply; user can specify number of cores for parallelisation if parallel = TRUE. Package automatically uses the user's parallel backend if one has already been registered.}
+\item{cores}{User can specify number of cores for parallelisation if parallel = TRUE. Package automatically uses the user's parallel backend if one has already been registered.}
 }
 \value{
-A list containing the averaged labels, as well as the results of each mixture model initialisation.
+A list with the following components: (maxNCat refers to the maximum number of categories for any covariate in the data)
+\item{labels_avg}{A numeric N-vector listing the cluster assignments for the observations in the averaged model.}
+\item{init_results}{A list where each entry is the cluster assignments for one of the initialisations included in the model averaging.}
 }
 \description{
-runVICatMixAvg
+An extension of `runVICatMix` to incorporate model averaging/summarisation over multiple initialisations.
+}
+\examples{
+# example code
+result <- runVICatMixAvg(zoo, 10, 0.01)
+
+print(result$labels_avg)
+
+
+
+}
+\seealso{
+\code{\link{runVICatMix}}
 }
