@@ -45,7 +45,7 @@
 #' result <- runVICatMixVarSelAvg(zoo, 10, 0.01)
 #'
 #' print(result$labels_avg)
-#' print(result$varseL_avg)
+#' print(result$varsel_avg)
 #'
 #'
 #'
