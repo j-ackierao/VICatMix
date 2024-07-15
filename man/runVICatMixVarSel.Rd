@@ -15,39 +15,55 @@ runVICatMixVarSel(
 )
 }
 \arguments{
-\item{data}{A data frame or data matrix with N rows of observations, and P columns of covariates.}
+\item{data}{A data frame or data matrix with N rows of observations, and P
+columns of covariates.}
 
 \item{K}{Maximum number of clusters desired.}
 
-\item{alpha}{The Dirichlet prior parameter. Recommended to set this to a number < 1.}
+\item{alpha}{The Dirichlet prior parameter. Recommended to set this to a
+number < 1.}
 
 \item{a}{Hyperparameter for variable selection hyperprior. Default is 2.}
 
-\item{maxiter}{The maximum number of iterations for the algorithm. Default is 2000.}
+\item{maxiter}{The maximum number of iterations for the algorithm. Default is
+2000.}
 
 \item{tol}{A convergence parameter. Default is 5x10^-8.}
 
-\item{outcome}{Optional outcome variable. Default is NA; having an outcome triggers semi-supervised profile regression.}
+\item{outcome}{Optional outcome variable. Default is NA; having an outcome
+triggers semi-supervised profile regression.}
 }
 \value{
-A list with the following components: (maxNCat refers to the maximum number of categories for any covariate in the data)
-\item{labels}{A numeric vector listing the cluster assignments for the observations.}
-\item{ELBO}{A numeric vector tracking the value of the ELBO in every iteration.}
-\item{Cl}{A numeric vector tracking the number of clusters in every iteration.}
-\item{model}{A list containing all variational model parameters and the cluster labels:
+A list with the following components: (maxNCat refers to the maximum
+  number of categories for any covariate in the data) 
+  \item{labels}{A numeric vector listing the cluster assignments for the 
+  observations.} 
+  \item{ELBO}{A numeric vector tracking the value of the ELBO in every 
+  iteration.}
+  \item{Cl}{A numeric vector tracking the number of clusters in every 
+  iteration.}
+  \item{model}{A list containing all variational model parameters and the 
+  cluster labels:
  \describe{
      \item{alpha}{A K-length vector of Dirichlet parameters for alpha.}
      \item{eps}{A K x maxNCat x P array of Dirichlet parameters for epsilon.}
-     \item{c}{A P-length vector of expected values for the variable selection parameter, gamma.}
-     \item{labels}{A numeric vector listing the cluster assignments for the observations.}
-     \item{nullphi}{A P x maxNCat matrix of maximum likelihood parameters for irrelevant variables.}
-     \item{rnk}{A N x K matrix of responsibilities for the latent variables Z.}
+     \item{c}{A P-length vector of expected values for the variable selection 
+     parameter, gamma.}
+     \item{labels}{A numeric vector listing the cluster assignments for the 
+     observations.}
+     \item{nullphi}{A P x maxNCat matrix of maximum likelihood parameters 
+     for irrelevant variables.}
+     \item{rnk}{A N x K matrix of responsibilities for the latent variables 
+     Z.}
    }
  }
-\item{factor_labels}{A data frame showing how variable categories correspond to numeric factor labels in the model.}
+  \item{factor_labels}{A data frame showing how variable categories
+  correspond to numeric factor labels in the model.}
 }
 \description{
-Perform a run of the VICatMixVarSel model on a data-frame including variable selection. Includes an option to include an outcome variable for semi-supervised profile regression.
+Perform a run of the VICatMixVarSel model on a data-frame including variable
+selection. Includes an option to include an outcome variable for
+semi-supervised profile regression.
 }
 \examples{
 # example code

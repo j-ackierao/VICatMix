@@ -19,37 +19,54 @@ runVICatMixVarSelAvg(
 )
 }
 \arguments{
-\item{data}{A data frame or data matrix with N rows of observations, and P columns of covariates.}
+\item{data}{A data frame or data matrix with N rows of observations, and P
+columns of covariates.}
 
 \item{K}{Maximum number of clusters desired.}
 
-\item{alpha}{The Dirichlet prior parameter. Recommended to set this to a number < 1.}
+\item{alpha}{The Dirichlet prior parameter. Recommended to set this to a
+number < 1.}
 
 \item{a}{Hyperparameter for variable selection hyperprior. Default is 2.}
 
-\item{maxiter}{The maximum number of iterations for the algorithm. Default is 2000.}
+\item{maxiter}{The maximum number of iterations for the algorithm. Default is
+2000.}
 
 \item{tol}{A convergence parameter. Default is 5x10^-8.}
 
-\item{inits}{The number of initialisations included in the co-clustering matrix. Default is 25.}
+\item{inits}{The number of initialisations included in the co-clustering
+matrix. Default is 25.}
 
-\item{loss}{The loss function to be used with the co-clustering matrix. Default is VoIcomp. Options are "VoIavg", "VoIcomp" and "medv".}
+\item{loss}{The loss function to be used with the co-clustering matrix.
+Default is VoIcomp. Options are "VoIavg", "VoIcomp" and "medv".}
 
-\item{var_threshold}{Threshold for selection proportion for determining selected variables under the averaged model. Options are 0 < n <= 1 for a threshold. Default is 0.95.}
+\item{var_threshold}{Threshold for selection proportion for determining
+selected variables under the averaged model. Options are 0 < n <= 1 for a
+threshold. Default is 0.95.}
 
-\item{parallel}{Logical value indicating whether to run initialisations in parallel. Default is FALSE.}
+\item{parallel}{Logical value indicating whether to run initialisations in
+parallel. Default is FALSE.}
 
-\item{cores}{User can specify number of cores for parallelisation if parallel = TRUE. Package automatically uses the user's parallel backend if one has already been registered.}
+\item{cores}{User can specify number of cores for parallelisation if parallel
+= TRUE. Package automatically uses the user's parallel backend if one has
+already been registered.}
 }
 \value{
-A list with the following components: (maxNCat refers to the maximum number of categories for any covariate in the data)
-\item{labels_avg}{A numeric N-vector listing the cluster assignments for the observations in the averaged model.}
-\item{varsel_avg}{A numeric P-vector with a variable selection indicator for the covariates in the averaged model.}
-\item{init_results}{A list where each entry is the cluster assignments for one of the initialisations included in the model averaging.}
-\item{init_varsel_results}{A list where each entry is the expected value for the variable selection parameters ('c') for one of the initialisations included in the model averaging.}
+A list with the following components: (maxNCat refers to the maximum
+  number of categories for any covariate in the data) 
+  \item{labels_avg}{A numeric N-vector listing the cluster assignments for 
+  the observations in the averaged model.} 
+  \item{varsel_avg}{A numeric P-vector with a variable selection indicator 
+  for the covariates in the averaged model.}
+  \item{init_results}{A list where each entry is the cluster assignments for
+  one of the initialisations included in the model averaging.}
+  \item{init_varsel_results}{A list where each entry is the expected value
+  for the variable selection parameters ('c') for one of the initialisations
+  included in the model averaging.}
 }
 \description{
-An extension of `runVICatMixVarSel` to incorporate model averaging/summarisation over multiple initialisations.
+An extension of `runVICatMixVarSel` to incorporate model
+averaging/summarisation over multiple initialisations.
 }
 \examples{
 # example code
@@ -57,7 +74,7 @@ An extension of `runVICatMixVarSel` to incorporate model averaging/summarisation
 result <- runVICatMixVarSelAvg(zoo, 10, 0.01)
 
 print(result$labels_avg)
-print(result$varseL_avg)
+print(result$varsel_avg)
 
 
 
