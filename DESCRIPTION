@@ -15,6 +15,7 @@ Imports:
     mcclust,
     mcclust.ext,
     Rcpp (>= 1.0.12),
+Remotes: sarawade/mcclust.ext
 Suggests:
     doParallel,
     doRNG,
