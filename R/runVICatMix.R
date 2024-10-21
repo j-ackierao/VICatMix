@@ -5,9 +5,9 @@
 #'
 #' @param data A data frame or data matrix with N rows of observations, and P
 #'   columns of covariates.
-#' @param K Maximum number of clusters desired.
+#' @param K Maximum number of clusters desired. Must be an integer greater than 1.
 #' @param alpha The Dirichlet prior parameter. Recommended to set this to a
-#'   number < 1.
+#'   number < 1. Must be > 0.
 #' @param maxiter The maximum number of iterations for the algorithm. Default is
 #'   2000.
 #' @param tol A convergence parameter. Default is 5x10^-8.
@@ -47,6 +47,15 @@
 #' @importFrom klaR kmodes
 #' @export
 runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbose = FALSE){
+  
+  #Checks on variables
+  if (!is.numeric(K) | K <= 1 | K != round(K)) {
+    stop("Error: K must be an integer greater than 1.")}
+  if (!is.numeric(alpha) | alpha <= 0) {
+    stop("Error: alpha must be positive.")}
+  if (any(is.na(data))) {
+    stop("Error: The data frame contains NA values. Please remove or handle them before proceeding.")
+  }
   
   #Process dataset
   X <- as.data.frame(data)
