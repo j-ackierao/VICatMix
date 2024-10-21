@@ -11,11 +11,13 @@ runVICatMixVarSelAvg(
   a = 2,
   maxiter = 2000,
   tol = 5e-08,
+  outcome = NA,
   inits = 25,
   loss = "VoIcomp",
   var_threshold = 0.95,
   parallel = FALSE,
-  cores = getOption("mc.cores", 2L)
+  cores = getOption("mc.cores", 2L),
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,6 +36,9 @@ number < 1.}
 
 \item{tol}{A convergence parameter. Default is 5x10^-8.}
 
+\item{outcome}{Optional outcome variable. Default is NA; having an outcome
+triggers semi-supervised profile regression.}
+
 \item{inits}{The number of initialisations included in the co-clustering
 matrix. Default is 25.}
 
@@ -50,6 +55,8 @@ parallel. Default is FALSE.}
 \item{cores}{User can specify number of cores for parallelisation if parallel
 = TRUE. Package automatically uses the user's parallel backend if one has
 already been registered.}
+
+\item{verbose}{Default FALSE. Set to TRUE to output ELBO values for each iteration.}
 }
 \value{
 A list with the following components: (maxNCat refers to the maximum

@@ -12,6 +12,8 @@
 #' @param maxiter The maximum number of iterations for the algorithm. Default is
 #'   2000.
 #' @param tol A convergence parameter. Default is 5x10^-8.
+#' @param outcome Optional outcome variable. Default is NA; having an outcome
+#'   triggers semi-supervised profile regression.
 #' @param inits The number of initialisations included in the co-clustering
 #'   matrix. Default is 25.
 #' @param loss The loss function to be used with the co-clustering matrix.
@@ -24,6 +26,7 @@
 #' @param cores User can specify number of cores for parallelisation if parallel
 #'   = TRUE. Package automatically uses the user's parallel backend if one has
 #'   already been registered.
+#' @param verbose Default FALSE. Set to TRUE to output ELBO values for each iteration.
 #'
 #' @returns A list with the following components: (maxNCat refers to the maximum
 #'   number of categories for any covariate in the data) 
@@ -53,15 +56,15 @@
 #' @importFrom mcclust medv
 #' @importFrom mcclust comp.psm
 #' @export
-runVICatMixVarSelAvg <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.00000005, inits = 25, 
-                           loss = "VoIcomp", var_threshold = 0.95, parallel = FALSE, cores=getOption('mc.cores', 2L)){
+runVICatMixVarSelAvg <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.00000005, outcome = NA, inits = 25, 
+                           loss = "VoIcomp", var_threshold = 0.95, parallel = FALSE, cores=getOption('mc.cores', 2L), verbose = FALSE){
   
   resultforpsm <- list()
   resultforvars <- list()
   
   if (parallel == FALSE){
     for (i in 1:inits){
-      mix <- runVICatMixVarSel(data, K, alpha, a , maxiter, tol)
+      mix <- runVICatMixVarSel(data, K, alpha, a , maxiter, tol, outcome, verbose)
       resultforpsm[[i]] <- mix$model$labels
       resultforvars[[i]] <- mix$model$c
     }
@@ -88,14 +91,14 @@ runVICatMixVarSelAvg <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.
     
     if (requireNamespace("doRNG", quietly = TRUE)) {
       foreach::foreach(i = 1:inits) %dorng% {
-        mix <- runVICatMixVarSel(data, K, alpha, a, maxiter, tol)
+        mix <- runVICatMixVarSel(data, K, alpha, a, maxiter, tol, outcome, verbose)
         resultforpsm[[i]] <- mix$model$labels
         resultforvars[[i]] <- mix$model$c
       }
     } else {
       message("Package 'doRNG' is strongly recommended for parallelisation. Using doPar:")
       foreach::foreach(i = 1:inits) %dopar% { 
-        mix <- runVICatMixVarSel(data, K, alpha, a, maxiter, tol)
+        mix <- runVICatMixVarSel(data, K, alpha, a, maxiter, tol, outcome, verbose)
         resultforpsm[[i]] <- mix$model$labels
         resultforvars[[i]] <- mix$model$c
       }

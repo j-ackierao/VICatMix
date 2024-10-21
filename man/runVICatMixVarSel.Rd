@@ -11,7 +11,8 @@ runVICatMixVarSel(
   a = 2,
   maxiter = 2000,
   tol = 5e-08,
-  outcome = NA
+  outcome = NA,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ number < 1.}
 
 \item{outcome}{Optional outcome variable. Default is NA; having an outcome
 triggers semi-supervised profile regression.}
+
+\item{verbose}{Default FALSE. Set to TRUE to output ELBO values for each iteration.}
 }
 \value{
 A list with the following components: (maxNCat refers to the maximum

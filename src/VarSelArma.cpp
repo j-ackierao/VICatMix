@@ -1,5 +1,4 @@
 #include <RcppArmadillo.h> // new 'lighter' header
-#include <boost/math/special_functions/digamma.hpp>
 
 // Functions in RcppArmadillo for variational mixture model with variable selection
 
@@ -17,7 +16,6 @@ arma::cube lognullphiCalc(arma::mat nullphi, arma::mat X, double K, double D, do
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".logrhonkCalcVarSel")]]
 arma::mat logrhonkCalcVarSel(arma::vec Elogpi, arma::cube carray, arma::mat cmatrix, double K, double D, double N){
   arma::mat v(N, K);
@@ -37,7 +35,6 @@ arma::mat logrhonkCalcVarSel(arma::vec Elogpi, arma::cube carray, arma::mat cmat
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".epsCalcVarSel")]]
 arma::cube epsCalcVarSel(double K, double maxNCat, double D, double N, arma::mat prioreps, arma::mat X, arma::mat rnk, arma::vec c){
   arma::cube v(K, maxNCat, D);
@@ -57,7 +54,6 @@ arma::cube epsCalcVarSel(double K, double maxNCat, double D, double N, arma::mat
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".CpostdeltaCalc")]]
 arma::vec CpostdeltaCalc(arma::vec c, double a, double D){
   arma::vec v(D);
@@ -67,7 +63,6 @@ arma::vec CpostdeltaCalc(arma::vec c, double a, double D){
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".logeta1Calc")]]
 arma::vec logeta1Calc(arma::cube Elogphi, arma::mat rnk, arma::vec Elogdelta, double K, double D, double N){
   arma::vec v(D);
@@ -83,7 +78,6 @@ arma::vec logeta1Calc(arma::cube Elogphi, arma::mat rnk, arma::vec Elogdelta, do
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".logeta2Calc")]]
 arma::vec logeta2Calc(arma::cube lognullphi, arma::mat rnk, arma::vec Elogminusdelta, double K, double D, double N){
   arma::vec v(D);
@@ -99,7 +93,6 @@ arma::vec logeta2Calc(arma::cube lognullphi, arma::mat rnk, arma::vec Elogminusd
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".cCalc")]]
 arma::vec cCalc(arma::vec logeta1, arma::vec clse, double D){
   arma::vec v(D);
@@ -109,7 +102,6 @@ arma::vec cCalc(arma::vec logeta1, arma::vec clse, double D){
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".sumDElogphiCalcVarSel")]]
 arma::mat sumDElogphiCalcVarSel(arma::cube carray, arma::mat cmatrix, double K, double D, double N){
   arma::mat v(N, K);
@@ -125,7 +117,6 @@ arma::mat sumDElogphiCalcVarSel(arma::cube carray, arma::mat cmatrix, double K, 
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".logrhonkCalcProfCat")]]
 arma::mat logrhonkCalcProfCat(arma::vec Elogpi, arma::mat Elogtheta, arma::vec y, arma::cube carray, arma::mat cmatrix, double K, double D, double N){
   arma::mat v(N, K);

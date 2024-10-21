@@ -1,5 +1,4 @@
 #include <Rcpp.h>
-#include <boost/math/special_functions/digamma.hpp>
 using namespace Rcpp;
 
 // Functions in Rcpp for original variational mixture model and empirical mixture model

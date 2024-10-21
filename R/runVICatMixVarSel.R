@@ -15,6 +15,7 @@
 #' @param tol A convergence parameter. Default is 5x10^-8.
 #' @param outcome Optional outcome variable. Default is NA; having an outcome
 #'   triggers semi-supervised profile regression.
+#' @param verbose Default FALSE. Set to TRUE to output ELBO values for each iteration.
 #'
 #'
 #' @returns A list with the following components: (maxNCat refers to the maximum
@@ -58,7 +59,7 @@
 #'
 #' @importFrom klaR kmodes
 #' @export
-runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.00000005, outcome = NA){
+runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.00000005, outcome = NA, verbose = FALSE){
   
   #Process dataset
   if (is.na(outcome)){
@@ -137,18 +138,18 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   
   if (is.na(outcome)){
     for (iter in 1:maxiter){
-      print(paste("Iteration number ",iter))
       model = .expectStepVarSel(X, model) #Expectation step
       .GlobalEnv$maxNCat <- maxNCat
       ELBO[iter * 2-1] = .ELBOCalcVarSel(X, model, prior) #ELBO
-      print(ELBO[iter * 2-1])
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
       model = .maxStepVarSel(X, model, prior) #Maximisation step
       ELBO[iter * 2] = .ELBOCalcVarSel(X, model, prior) #ELBO
-      print(ELBO[iter * 2])
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
+      if(verbose){
+        cat("Iteration number ", iter, ": ", ELBO[iter * 2-1], ", ", ELBO[iter * 2], "\n", sep = "")
+      }
       if(.check_convergence(ELBO, iter, maxiter, tol)) break
       
     }
@@ -156,18 +157,18 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   
   if (!is.na(outcome)){
     for (iter in 1:maxiter){
-      print(paste("Iteration number ",iter))
       model = .expectStepProfCat(X, model) #Expectation step
       .GlobalEnv$maxNCat <- maxNCat
       ELBO[iter * 2-1] = .ELBOCalcProfCat(X, model, prior) #ELBO
-      print(ELBO[iter * 2-1])
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
       model = .maxStepProfCat(X, model, prior) #Maximisation step
       ELBO[iter * 2] = .ELBOCalcProfCat(X, model, prior) #ELBO
-      print(ELBO[iter * 2])
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
+      if(verbose){
+        cat("Iteration number ", iter, ": ", ELBO[iter * 2-1], ", ", ELBO[iter * 2], "\n", sep = "")
+      }
       if(.check_convergence(ELBO, iter, maxiter, tol)) break
       
     }

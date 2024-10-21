@@ -1,5 +1,4 @@
 #include <RcppArmadillo.h> // new 'lighter' header
-#include <boost/math/special_functions/digamma.hpp>
 
 // Functions in RcppArmadillo for original variational mixture model
 
@@ -15,14 +14,13 @@ arma::cube ElogphiCalc(arma::cube eps, double K, double D, double N, double maxN
       }
       for (int n = 0; n < N; n++){
         double j = X(n, d);
-        v(k, d, n) = boost::math::digamma(eps(k, j-1, d)) - boost::math::digamma(sum);
+        v(k, d, n) = R::digamma(eps(k, j-1, d)) - R::digamma(sum);
       }
     }
   }
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".ElogphiLCalc")]]
 arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat, arma::vec nCat){
   arma::cube v(K, maxNCat, D);
@@ -34,14 +32,13 @@ arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat, arma
         sum += eps(k, i, d);
       }
       for (int l = 0; l < varCat; l++){
-        v(k, l, d) = boost::math::digamma(eps(k, l, d)) - boost::math::digamma(sum);
+        v(k, l, d) = R::digamma(eps(k, l, d)) - R::digamma(sum);
       }
     }
   }
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".logrhonkCalc")]]
 arma::mat logrhonkCalc(arma::vec Elogpi, arma::cube Elogphi, double K, double D, double N){
   arma::mat v(N, K);
@@ -57,7 +54,6 @@ arma::mat logrhonkCalc(arma::vec Elogpi, arma::cube Elogphi, double K, double D,
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".epsCalc")]]
 arma::cube epsCalc(double K, double maxNCat, double D, double N, arma::mat prioreps, arma::mat X, arma::mat rnk){
   arma::cube v(K, maxNCat, D);
@@ -77,7 +73,6 @@ arma::cube epsCalc(double K, double maxNCat, double D, double N, arma::mat prior
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".firstepsCalc")]]
 arma::cube firstepsCalc(double K, double maxNCat, double D, double N, arma::mat prioreps, arma::mat X, arma::vec clusterInit){
   arma::cube v(K, maxNCat, D);
@@ -97,7 +92,6 @@ arma::cube firstepsCalc(double K, double maxNCat, double D, double N, arma::mat 
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".CpriorepsCalc")]]
 arma::mat CpriorepsCalc(arma::cube prioreps, double K, double D, arma::vec nCat){
   arma::mat v(K, D);
@@ -118,7 +112,6 @@ arma::mat CpriorepsCalc(arma::cube prioreps, double K, double D, arma::vec nCat)
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".CpostepsCalc")]]
 arma::mat CpostepsCalc(arma::cube eps, double K, double D, arma::vec nCat){
   arma::mat v(K, D);
@@ -139,7 +132,6 @@ arma::mat CpostepsCalc(arma::cube eps, double K, double D, arma::vec nCat){
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".sumDElogphiCalc")]]
 arma::mat sumDElogphiCalc(arma::cube Elogphi, double K, double D, double N){
   arma::mat v(N, K);
@@ -155,7 +147,6 @@ arma::mat sumDElogphiCalc(arma::cube Elogphi, double K, double D, double N){
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".priorepsminusoneCalc")]]
 arma::cube priorepsminusoneCalc(arma::cube prioreps, double K, double D, double maxNCat){
   arma::cube v(K, maxNCat, D);
@@ -173,7 +164,6 @@ arma::cube priorepsminusoneCalc(arma::cube prioreps, double K, double D, double 
   return v;
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export(name = ".epsminusoneCalc")]]
 arma::cube epsminusoneCalc(arma::cube eps, double K, double D, double maxNCat){
   arma::cube v(K, maxNCat, D);

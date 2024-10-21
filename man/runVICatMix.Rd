@@ -4,7 +4,7 @@
 \alias{runVICatMix}
 \title{runVICatMix}
 \usage{
-runVICatMix(data, K, alpha, maxiter = 2000, tol = 5e-08)
+runVICatMix(data, K, alpha, maxiter = 2000, tol = 5e-08, verbose = FALSE)
 }
 \arguments{
 \item{data}{A data frame or data matrix with N rows of observations, and P
@@ -19,6 +19,8 @@ number < 1.}
 2000.}
 
 \item{tol}{A convergence parameter. Default is 5x10^-8.}
+
+\item{verbose}{Default FALSE. Set to TRUE to output ELBO values for each iteration.}
 }
 \value{
 A list with the following components: (maxNCat refers to the maximum

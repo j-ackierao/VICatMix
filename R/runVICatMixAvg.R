@@ -20,6 +20,7 @@
 #' @param cores User can specify number of cores for parallelisation if parallel
 #'   = TRUE. Package automatically uses the user's parallel backend if one has
 #'   already been registered.
+#' @param verbose Default FALSE. Set to TRUE to output ELBO values for each iteration.
 #'
 #' @returns A list with the following components: (maxNCat refers to the maximum
 #'   number of categories for any covariate in the data)
@@ -44,7 +45,7 @@
 #' @importFrom mcclust comp.psm
 #' @export
 runVICatMixAvg <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, inits = 25, 
-                           loss = "VoIcomp", parallel = FALSE, cores=getOption('mc.cores', 2L)){
+                           loss = "VoIcomp", parallel = FALSE, cores=getOption('mc.cores', 2L), verbose = FALSE){
   
   resultforpsm <- list()
   
@@ -76,13 +77,13 @@ runVICatMixAvg <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, ini
     
    if (requireNamespace("doRNG", quietly = TRUE)) {
         foreach::foreach(i = 1:inits) %dorng% {
-          mix <- runVICatMix(data, K, alpha, maxiter, tol)
+          mix <- runVICatMix(data, K, alpha, maxiter, tol, verbose)
           resultforpsm[[i]] <- mix$model$labels
         }
       } else {
         message("Package 'doRNG' is strongly recommended for parallelisation. Using doPar:")
         foreach::foreach(i = 1:inits) %dopar% { 
-          mix <- runVICatMix(data, K, alpha, maxiter, tol)
+          mix <- runVICatMix(data, K, alpha, maxiter, tol, verbose)
           resultforpsm[[i]] <- mix$model$labels
         }
       }

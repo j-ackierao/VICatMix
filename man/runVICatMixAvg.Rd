@@ -13,7 +13,8 @@ runVICatMixAvg(
   inits = 25,
   loss = "VoIcomp",
   parallel = FALSE,
-  cores = getOption("mc.cores", 2L)
+  cores = getOption("mc.cores", 2L),
+  verbose = FALSE
 )
 }
 \arguments{
@@ -42,6 +43,8 @@ parallel. Default is FALSE.}
 \item{cores}{User can specify number of cores for parallelisation if parallel
 = TRUE. Package automatically uses the user's parallel backend if one has
 already been registered.}
+
+\item{verbose}{Default FALSE. Set to TRUE to output ELBO values for each iteration.}
 }
 \value{
 A list with the following components: (maxNCat refers to the maximum

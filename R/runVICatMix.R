@@ -11,6 +11,7 @@
 #' @param maxiter The maximum number of iterations for the algorithm. Default is
 #'   2000.
 #' @param tol A convergence parameter. Default is 5x10^-8.
+#' @param verbose Default FALSE. Set to TRUE to output ELBO values for each iteration.
 #'
 #'
 #' @returns A list with the following components: (maxNCat refers to the maximum
@@ -45,7 +46,7 @@
 #'
 #' @importFrom klaR kmodes
 #' @export
-runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005){
+runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbose = FALSE){
   
   #Process dataset
   X <- as.data.frame(data)
@@ -97,18 +98,18 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005){
   #Update the epsilons based on the initial cluster assignment
   
   for (iter in 1:maxiter){
-    print(paste("Iteration number ",iter))
     model = .expectStep(X, model) #Expectation step
     .GlobalEnv$maxNCat <- maxNCat
     ELBO[iter * 2-1] = .ELBOCalc(X, model, prior) #ELBO
-    print(ELBO[iter * 2-1])
     Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
     
     model = .maxStep(X, model, prior) #Maximisation step
     ELBO[iter * 2] = .ELBOCalc(X, model, prior) #ELBO
-    print(ELBO[iter * 2])
     Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
     
+    if(verbose){
+      cat("Iteration number ", iter, ": ", ELBO[iter * 2-1], ", ", ELBO[iter * 2], "\n", sep = "")
+    }
     if(.check_convergence(ELBO, iter, maxiter, tol)) break
     
   }
@@ -245,14 +246,15 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005){
 .check_convergence<- function(ELBO, iter, maxiter, tol){
   if (iter > 1 && abs(ELBO[iter * 2] - ELBO[iter * 2-1]) < tol && abs(ELBO[iter * 2-1] - ELBO[iter * 2-2] < tol) && 
       abs(ELBO[iter * 2-2] - ELBO[iter * 2-3] < tol)){
-    print(paste("Stopped after iteration ",iter)) #make sure the last 3 ELBOs close to each other
+    cat("Stopped after iteration",iter, "\n", sep = " ") #make sure the last 3 ELBOs close to each other
     return(TRUE)
   }
   if (iter == maxiter){
-    print(paste("Not converged after maximum number of iterations"))
+    cat("Not converged after maximum number of iterations")
     return(TRUE)
   }
   else{
     return(FALSE)
   }
 }
+
