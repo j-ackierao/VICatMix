@@ -14,7 +14,7 @@ Imports:
     matrixStats,
     mcclust,
     mcclust.ext,
-    Rcpp (>= 1.0.12),
+    Rcpp,
 Remotes: sarawade/mcclust.ext
 Suggests:
     doParallel,
