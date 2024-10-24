@@ -38,9 +38,11 @@
 #'
 #' @examples
 #' # example code
-#' result <- runVICatMix(zoo, 10, 0.01)
+#' \dontrun{set.seed(15)
+#' generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 100, 0)
+#' result <- runVICatMix(generatedData$data, 10, 0.01)
 #'
-#' print(result$labels)
+#' print(result$labels)}
 #'
 #'
 #'
@@ -95,7 +97,10 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
   }
   
   #Initialising cluster labels
-  clusterInit <- klaR::kmodes(X, modes = K)$cluster #k modes: analogous to k means
+  start.time <- Sys.time()
+  clusterInit <- klaR::kmodes(X, modes = K, fast = F)$cluster #k modes: analogous to k means
+  end.time <- Sys.time()
+  difftime(end.time, start.time)
   
   EPSreshape = t(prior$eps) 
   dim(EPSreshape) = c(1,maxNCat,D) 

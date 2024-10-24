@@ -10,10 +10,10 @@ runVICatMix(data, K, alpha, maxiter = 2000, tol = 5e-08, verbose = FALSE)
 \item{data}{A data frame or data matrix with N rows of observations, and P
 columns of covariates.}
 
-\item{K}{Maximum number of clusters desired.}
+\item{K}{Maximum number of clusters desired. Must be an integer greater than 1.}
 
 \item{alpha}{The Dirichlet prior parameter. Recommended to set this to a
-number < 1.}
+number < 1. Must be > 0.}
 
 \item{maxiter}{The maximum number of iterations for the algorithm. Default is
 2000.}
@@ -51,9 +51,11 @@ selection imposed.
 }
 \examples{
 # example code
-result <- runVICatMix(zoo, 10, 0.01)
+\dontrun{set.seed(15)
+generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 100, 0)
+result <- runVICatMix(generatedData$data, 10, 0.01)
 
-print(result$labels)
+print(result$labels)}
 
 
 

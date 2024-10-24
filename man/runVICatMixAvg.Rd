@@ -21,10 +21,10 @@ runVICatMixAvg(
 \item{data}{A data frame or data matrix with N rows of observations, and P
 columns of covariates.}
 
-\item{K}{Maximum number of clusters desired.}
+\item{K}{Maximum number of clusters desired. Must be an integer greater than 1.}
 
 \item{alpha}{The Dirichlet prior parameter. Recommended to set this to a
-number < 1.}
+number < 1. Must be > 0.}
 
 \item{maxiter}{The maximum number of iterations for the algorithm. Default is
 2000.}
@@ -60,9 +60,11 @@ over multiple initialisations.
 }
 \examples{
 # example code
-result <- runVICatMixAvg(zoo, 10, 0.01)
+\dontrun{set.seed(15)
+generatedData <- generateSampleDataBin(100, 4, c(0.1, 0.2, 0.3, 0.4), 25, 0)
+result <- runVICatMixAvg(generatedData$data, 10, 0.01, inits = 10)
 
-print(result$labels_avg)
+print(result$labels_avg)}
 
 
 

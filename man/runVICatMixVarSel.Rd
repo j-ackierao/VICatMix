@@ -19,10 +19,10 @@ runVICatMixVarSel(
 \item{data}{A data frame or data matrix with N rows of observations, and P
 columns of covariates.}
 
-\item{K}{Maximum number of clusters desired.}
+\item{K}{Maximum number of clusters desired. Must be an integer greater than 1.}
 
 \item{alpha}{The Dirichlet prior parameter. Recommended to set this to a
-number < 1.}
+number < 1. Must be > 0.}
 
 \item{a}{Hyperparameter for variable selection hyperprior. Default is 2.}
 
@@ -71,13 +71,15 @@ semi-supervised profile regression.
 \examples{
 # example code
 
-result <- runVICatMixVarSel(zoo, 10, 0.01)
+\dontrun{set.seed(12)
+generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 90, 10)
+result <- runVICatMixVarSel(generatedData$data, 10, 0.01)
 
 print(result$labels)
 #clustering labels
 
 print(result$c)
-#expected values for variable selection parameter; 1 (or close to 1) indicates variable is relevant
+#expected values for variable selection parameter; 1 (or close to 1) indicates variable is relevant}
 
 
 

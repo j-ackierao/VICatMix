@@ -45,10 +45,12 @@
 #' @examples
 #' # example code
 #'
-#' result <- runVICatMixVarSelAvg(zoo, 10, 0.01)
+#' \dontrun{set.seed(12)
+#' generatedData <- generateSampleDataBin(100, 4, c(0.1, 0.2, 0.3, 0.4), 20, 5)
+#' result <- runVICatMixVarSelAvg(generatedData$data, 10, 0.01, inits = 10)
 #'
 #' print(result$labels_avg)
-#' print(result$varsel_avg)
+#' print(result$varsel_avg)}
 #'
 #'
 #'

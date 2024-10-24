@@ -47,13 +47,15 @@
 #' @examples
 #' # example code
 #'
-#' result <- runVICatMixVarSel(zoo, 10, 0.01)
+#' \dontrun{set.seed(12)
+#' generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 90, 10)
+#' result <- runVICatMixVarSel(generatedData$data, 10, 0.01)
 #'
 #' print(result$labels)
 #' #clustering labels
 #'
 #' print(result$c)
-#' #expected values for variable selection parameter; 1 (or close to 1) indicates variable is relevant
+#' #expected values for variable selection parameter; 1 (or close to 1) indicates variable is relevant}
 #'
 #'
 #'

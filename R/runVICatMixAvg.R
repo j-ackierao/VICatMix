@@ -32,9 +32,11 @@
 #'
 #' @examples
 #' # example code
-#' result <- runVICatMixAvg(zoo, 10, 0.01)
+#' \dontrun{set.seed(15)
+#' generatedData <- generateSampleDataBin(100, 4, c(0.1, 0.2, 0.3, 0.4), 25, 0)
+#' result <- runVICatMixAvg(generatedData$data, 10, 0.01, inits = 10)
 #'
-#' print(result$labels_avg)
+#' print(result$labels_avg)}
 #'
 #'
 #'
