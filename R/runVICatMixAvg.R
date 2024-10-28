@@ -78,16 +78,16 @@ runVICatMixAvg <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, ini
     }
     
    if (requireNamespace("doRNG", quietly = TRUE)) {
-        foreach::foreach(i = 1:inits) %dorng% {
+        mix_par <- foreach::foreach(i = 1:inits) %dorng% {
           mix <- runVICatMix(data, K, alpha, maxiter, tol, verbose)
-          resultforpsm[[i]] <- mix$model$labels
         }
+        resultforpsm <- lapply(mix_par, function(x) x$model$labels)
       } else {
         message("Package 'doRNG' is strongly recommended for parallelisation. Using doPar:")
-        foreach::foreach(i = 1:inits) %dopar% { 
+        mix_par <- foreach::foreach(i = 1:inits) %dopar% { 
           mix <- runVICatMix(data, K, alpha, maxiter, tol, verbose)
-          resultforpsm[[i]] <- mix$model$labels
         }
+        resultforpsm <- lapply(mix_par, function(x) x$model$labels)
       }
   }
   
