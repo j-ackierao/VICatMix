@@ -9,8 +9,8 @@
     .Call(`_VICatMix_ElogphiCalc`, eps, K, D, N, maxNCat, X)
 }
 
-.ElogphiLCalc <- function(eps, K, D, maxNCat, nCat) {
-    .Call(`_VICatMix_ElogphiLCalc`, eps, K, D, maxNCat, nCat)
+.ElogphiLCalc <- function(eps, K, D, maxNCat) {
+    .Call(`_VICatMix_ElogphiLCalc`, eps, K, D, maxNCat)
 }
 
 .logrhonkCalc <- function(Elogpi, Elogphi, K, D, N) {
@@ -29,8 +29,8 @@
     .Call(`_VICatMix_CpriorepsCalc`, prioreps, K, D, nCat)
 }
 
-.CpostepsCalc <- function(eps, K, D, nCat) {
-    .Call(`_VICatMix_CpostepsCalc`, eps, K, D, nCat)
+.CpostepsCalc <- function(eps, K, D, maxNCat) {
+    .Call(`_VICatMix_CpostepsCalc`, eps, K, D, maxNCat)
 }
 
 .sumDElogphiCalc <- function(Elogphi, K, D, N) {
@@ -43,6 +43,10 @@
 
 .epsminusoneCalc <- function(eps, K, D, maxNCat) {
     .Call(`_VICatMix_epsminusoneCalc`, eps, K, D, maxNCat)
+}
+
+.epsminuspriorepsCalc <- function(eps, prioreps, K, D, maxNCat) {
+    .Call(`_VICatMix_epsminuspriorepsCalc`, eps, prioreps, K, D, maxNCat)
 }
 
 .cmatrixCalc <- function(nullphi, X, c, N, D) {

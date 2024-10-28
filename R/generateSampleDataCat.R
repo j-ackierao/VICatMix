@@ -34,16 +34,10 @@
 #' # example code
 #' generatedData <- generateSampleDataCat(1000, 4, c(0.1, 0.2, 0.3, 0.4), 100, 0, cat = 3)
 #'
+#' @importFrom gtools rdirichlet
 #' @export
 
 generateSampleDataCat <- function(n, K, w, p, Irrp, yout = FALSE, cat = 2, ycat = 2){
-  
-  if (!requireNamespace("gtools", quietly = TRUE)) {
-    stop(
-      "Package 'gtools' must be installed to use this function.",
-      call. = FALSE
-    )
-  }
   
   # Variable called "clusterLabels" to store the cluster labels, 
   

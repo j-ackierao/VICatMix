@@ -154,7 +154,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
       model = .maxStepVarSel(X, model, prior) #Maximisation step
-      ELBO[iter * 2] = .ELBOCalcVarSel(X, model, prior) #ELBO
+      ELBO[iter * 2] = .ELBOCalcVarSelMStep(X, model, prior) #ELBO
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
       if(verbose){
@@ -173,7 +173,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
       model = .maxStepProfCat(X, model, prior) #Maximisation step
-      ELBO[iter * 2] = .ELBOCalcProfCat(X, model, prior) #ELBO
+      ELBO[iter * 2] = .ELBOCalcProfCatMStep(X, model, prior) #ELBO
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
       
       if(verbose){
@@ -279,10 +279,8 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   D = dim(X)[2]
   K = length(model$alpha)
   
-  EPSreshape = t(prior$eps) 
-  dim(EPSreshape) = c(1,maxNCat,D)
   prior2 = list(alpha = rep(prior$alpha, K),
-                eps = EPSreshape[rep(1,K),,])
+                eps = t(prior$eps))
   prioralpha <- prior2$alpha
   prioreps <- prior2$eps
   a <- prior$a
@@ -299,7 +297,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
   Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
   
-  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat, nCat)
+  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat)
   
   Elogdelta <- digamma(c + a) - digamma(2*a + 1)
   Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
@@ -308,7 +306,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
   Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
   Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
-  Cposteps <- .CpostepsCalc(eps, K, D, nCat)
+  Cposteps <- .CpostepsCalc(eps, K, D, maxNCat)
   Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
   Cpostdelta <- as.vector(.CpostdeltaCalc(c, a, D))
   
@@ -454,10 +452,8 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   J = dim(model$beta)[2]
   K = length(model$alpha)
   
-  EPSreshape = t(prior$eps) 
-  dim(EPSreshape) = c(1,maxNCat,D)
   prior2 = list(alpha = rep(prior$alpha, K),
-                eps = EPSreshape[rep(1,K),,])
+                eps = t(prior$eps))
   prioralpha <- prior2$alpha
   prioreps <- prior2$eps
   a <- prior$a
@@ -476,7 +472,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
   Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
   
-  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat, nCat)
+  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat)
   
   Elogdelta <- digamma(c + a) - digamma(2*a + 1)
   Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
@@ -485,7 +481,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
   Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
   Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
-  Cposteps <- .CpostepsCalc(eps, K, D, nCat)
+  Cposteps <- .CpostepsCalc(eps, K, D, maxNCat)
   Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
   Cpostdelta <- .CpostdeltaCalc(c, a, D)
   Cpriortheta <- .CpriorbetaCalc(priorbeta, K, J)
@@ -540,3 +536,175 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   
 }
 
+#' @keywords internal
+#' 
+
+.ELBOCalcVarSelMStep <- function(X, model, prior){
+  N = dim(X)[1]
+  D = dim(X)[2]
+  K = length(model$alpha)
+  
+  prior2 = list(alpha = rep(prior$alpha, K),
+                eps = t(prior$eps))
+  prioralpha <- prior2$alpha
+  prioreps <- prior2$eps
+  a <- prior$a
+  
+  alpha <- model$alpha
+  eps <- model$eps
+  rnk <- model$rnk
+  c <- model$c
+  nullphi <- model$nullphi
+  
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat)
+  
+  Elogdelta <- digamma(c + a) - digamma(2*a + 1)
+  Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
+  
+  Tk <- alpha - prioralpha
+  
+  #(log) normalising constants of Dirichlet
+  Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
+  Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
+  Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
+  Cposteps <- .CpostepsCalc(eps, K, D, maxNCat)
+  Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
+  Cpostdelta <- as.vector(.CpostdeltaCalc(c, a, D))
+  
+  #Calculations
+  
+  carray <- replicate(N, matrix(rep(c, K), ncol = D, byrow = TRUE), simplify="array") * Elogphi
+  #array of c_i * Elogphi
+  cmatrix <- .cmatrixCalc(nullphi, X, c, N, D)
+  sumDElogphi <- .sumDElogphiCalcVarSel(carray, cmatrix, K, D, N)
+  
+  priorepsminusone <- .priorepsminusoneCalc(prioreps, K, D, maxNCat)
+  epsminusone <- .epsminusoneCalc(eps, K, D, maxNCat)
+  
+  matExp1 <- rnk * sumDElogphi
+  
+  Exp1 <- sum(matExp1) #E(logp(X|Z,phi)) 
+  
+  Exp2 <- sum(Tk * Elogpi) #E(logp(Z|pi))
+  
+  Exp3 <- sum((prioralpha - 1)*Elogpi) + Cprioralpha #E(logp(pi)) 
+  
+  Exp4 <- sum((priorepsminusone)*ElogphiL) + sum(Cprioreps) #E(logp(phi)) 
+  
+  Exp5 <- sum((c * Elogdelta) + (1-c)*Elogminusdelta) #E(logp(gamma|delta)) 
+  
+  Exp6 <- sum((a - 1) * Elogdelta + (a - 1) * Elogminusdelta + Cpriordelta) #E(logp(delta)) 
+  
+  logrnk <- log(rnk)
+  logrnk[logrnk == -Inf] <- 0
+  Exp7 <- sum(rnk * logrnk) #E(q(Z)) 
+  
+  Exp8 <- sum((alpha - 1)*Elogpi) + Cpostalpha #E(logq(pi)) 
+  
+  Exp9 <- sum((epsminusone)*ElogphiL) + sum(Cposteps) #Elogq(phi) 
+  
+  matExp10 <- (c * log(c)) + ((1-c) * log(1-c))
+  matExp10[is.na(matExp10)] <- 0
+  
+  Exp10 <- sum(matExp10) #Elogq(gamma) 
+  
+  Exp11 <- sum((c + a - 1) * Elogdelta + (a - c) * Elogminusdelta + Cpostdelta) #Elogq(delta) 
+  
+  ELBO <- Exp1 + Exp2 + Exp3 + Exp4 + Exp5 + Exp6 - Exp7 - Exp8 - Exp9 - Exp10 - Exp11
+  
+}
+
+#' @keywords internal
+#' 
+.ELBOCalcProfCatMStep <- function(X, y, model, prior){
+  N = dim(X)[1]
+  D = dim(X)[2]
+  J = dim(model$beta)[2]
+  K = length(model$alpha)
+  
+  prior2 = list(alpha = rep(prior$alpha, K),
+                eps = t(prior$eps))
+  prioralpha <- prior2$alpha
+  prioreps <- prior2$eps
+  a <- prior$a
+  priorbeta <- prior$beta
+  
+  alpha <- model$alpha
+  eps <- model$eps
+  rnk <- model$rnk
+  c <- model$c
+  nullphi <- model$nullphi
+  beta <- model$beta
+  
+  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
+  maxNCat <- max(nCat)
+  
+  Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
+  Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
+  ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat)
+  
+  Tk <- alpha - prioralpha
+  
+  Elogdelta <- digamma(c + a) - digamma(2*a + 1)
+  Elogminusdelta <- digamma(1 - c + a) - digamma(2*a + 1)
+  Elogtheta <- .ElogthetaCalcCat(beta, K, J)
+  
+  Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
+  Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
+  Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
+  Cposteps <- .CpostepsCalc(eps, K, D, maxNCat)
+  Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
+  Cpostdelta <- .CpostdeltaCalc(c, a, D)
+  Cpriortheta <- .CpriorbetaCalc(priorbeta, K, J)
+  Cposttheta <- .CpostbetaCalc(beta, K, J)
+  
+  carray <- replicate(N, matrix(rep(c, K), ncol = D, byrow = TRUE), simplify="array") * Elogphi
+  #c_i * Elogphi
+  cmatrix <- .cmatrixCalc(nullphi, X, c, N, D) #c_i * phi_0ixni
+  
+  sumDElogphi <- .sumDElogphiCalcVarSel(carray, cmatrix, K, D, N)
+  priorepsminusone <- .priorepsminusoneCalc(prioreps, K, D, maxNCat)
+  epsminusone <- .epsminusoneCalc(eps, K, D, maxNCat)
+  
+  resptheta <- .respthetaCalc(Elogtheta, rnk, y, N, K)
+  matExp1 <- rnk * sumDElogphi
+  
+  Exp1 <- sum(resptheta) + sum(matExp1) #E(logp(X, Y|Z,phi, theta, gamma)) 
+  
+  Exp2 <- sum(Tk * Elogpi) #E(logp(Z|pi))
+  
+  Exp3 <- sum((prioralpha - 1)*Elogpi) + Cprioralpha #E(logp(pi)) 
+  
+  Exp4 <- sum((priorepsminusone)*ElogphiL) + sum(Cprioreps) #E(logp(phi)) 
+  
+  Exp5 <- sum((c * Elogdelta) + (1-c)*Elogminusdelta) #E(logp(gamma|delta)) 
+  
+  Exp6 <- sum((a - 1) * Elogdelta + (a - 1) * Elogminusdelta + Cpriordelta) #E(logp(delta)) 
+  
+  Exp7 <- sum((priorbeta - 1) * Elogtheta) + sum(Cpriortheta) #Elogptheta 
+  
+  logrnk <- log(rnk)
+  logrnk[logrnk == -Inf] <- 0
+  Exp8 <- sum(rnk * logrnk) #E(q(Z)) 
+  
+  Exp9 <- sum((alpha - 1)*Elogpi) + Cpostalpha #E(logq(pi))
+  
+  Exp10 <- sum((epsminusone)*ElogphiL) + sum(Cposteps) #Elogq(phi) 
+  
+  matExp11 <- (c * log(c)) + ((1-c) * log(1-c))
+  matExp11[is.na(matExp11)] <- 0
+  
+  Exp11 <- sum(matExp11) #Elogq(gamma) 
+  
+  Exp12 <- sum((c + a - 1) * Elogdelta + (a - c) * Elogminusdelta + Cpostdelta) 
+  
+  Exp13 <- sum((beta - 1) * Elogtheta) + sum(Cposttheta) 
+  
+  ELBO <- Exp1 + Exp2 + Exp3 + Exp4 + Exp5 + Exp6 + Exp7 - Exp8 - Exp9 - Exp10 - Exp11 - Exp12 - Exp13
+  
+}

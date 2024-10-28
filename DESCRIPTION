@@ -3,7 +3,8 @@ Package: VICatMix
 Title: Variational Mixture Models for Clustering Categorical Data
 Version: 1.0
 Date: 2024-03-25
-Author: Jackie Rao
+Authors@R: c(person("Jackie", "Rao", email = "jackie.rao@mrc-bsu.cam.ac.uk", role = c("aut", "cre")),
+    person(c("Paul", "D.W"), "Kirk", email = "paul.kirk@mrc-bsu.cam.ac.uk", role = "ths"))
 Maintainer: Jackie Rao <jackie.rao@mrc-bsu.cam.ac.uk>
 Description: VICatMix is a variational Bayesian finite mixture model for the clustering of categorical data, and can implement variable selection and semi-supervised outcome guiding if desired. Incorporates an option to perform model averaging over multiple initialisations to reduce the effects of local optima and improve the automatic estimation of the true number of clusters. For further details, see https://doi.org/10.48550/arXiv.2406.16227.
 License: GPL (>= 3)
@@ -15,14 +16,14 @@ Imports:
     mcclust,
     mcclust.ext,
     Rcpp,
-    stats
+    stats,
+    gtools
 Remotes: sarawade/mcclust.ext
 Suggests:
     doParallel,
     doRNG,
     foreach,
-    parallel,
-    gtools
+    parallel
 LinkingTo: 
     Rcpp,
     RcppArmadillo

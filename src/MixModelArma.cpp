@@ -22,17 +22,20 @@ arma::cube ElogphiCalc(arma::cube eps, double K, double D, double N, double maxN
 }
 
 // [[Rcpp::export(name = ".ElogphiLCalc")]]
-arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat, arma::vec nCat){
+arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat){
   arma::cube v(K, maxNCat, D);
   for (int d = 0; d < D; d++){
-    double varCat = nCat(d);
     for (int k = 0; k < K; k++){
       double sum = 0; // Sum value
       for(int i = 0; i < maxNCat; i++){
         sum += eps(k, i, d);
       }
-      for (int l = 0; l < varCat; l++){
-        v(k, l, d) = R::digamma(eps(k, l, d)) - R::digamma(sum);
+      for (int l = 0; l < maxNCat; l++){
+        if (eps(k, l, d) != 0){
+          v(k, l, d) = R::digamma(eps(k, l, d)) - R::digamma(sum);
+        } else{
+          v(k, l, d) = 0;
+        }
       }
     }
   }
@@ -93,18 +96,18 @@ arma::cube firstepsCalc(double K, double maxNCat, double D, double N, arma::mat 
 }
 
 // [[Rcpp::export(name = ".CpriorepsCalc")]]
-arma::mat CpriorepsCalc(arma::cube prioreps, double K, double D, arma::vec nCat){
+arma::mat CpriorepsCalc(arma::mat prioreps, double K, double D, arma::vec nCat){
   arma::mat v(K, D);
   for (int d = 0; d < D; d++){
     double varCat = nCat(d);
     for (int k = 0; k < K; k++){
       double sum1 = 0; // Sum value
       for(int j = 0; j < varCat; j++){
-        sum1 += prioreps(k, j, d);
+        sum1 += prioreps(j, d);
       }
       double sum2 = 0;
       for (int j = 0; j < varCat; j++){
-        sum2 += lgamma(prioreps(k, j, d));
+        sum2 += lgamma(prioreps(j, d));
       }
       v(k, d) = lgamma(sum1) - sum2;
     }
@@ -113,18 +116,21 @@ arma::mat CpriorepsCalc(arma::cube prioreps, double K, double D, arma::vec nCat)
 }
 
 // [[Rcpp::export(name = ".CpostepsCalc")]]
-arma::mat CpostepsCalc(arma::cube eps, double K, double D, arma::vec nCat){
+arma::mat CpostepsCalc(arma::cube eps, double K, double D, double maxNCat){
   arma::mat v(K, D);
   for (int d = 0; d < D; d++){
-    double varCat = nCat(d);
     for (int k = 0; k < K; k++){
       double sum1 = 0; // Sum value
-      for(int j = 0; j < varCat; j++){
+      for(int j = 0; j < maxNCat; j++){
         sum1 += eps(k, j, d);
       }
       double sum2 = 0;
-      for (int j = 0; j < varCat; j++){
-        sum2 += lgamma(eps(k, j, d));
+      for (int j = 0; j < maxNCat; j++){
+        if (eps(k, j, d) != 0){
+          sum2 += lgamma(eps(k, j, d));
+        } else{
+          sum2 += 0;
+        }
       }
       v(k, d) = lgamma(sum1) - sum2;
     }
@@ -148,13 +154,13 @@ arma::mat sumDElogphiCalc(arma::cube Elogphi, double K, double D, double N){
 }
 
 // [[Rcpp::export(name = ".priorepsminusoneCalc")]]
-arma::cube priorepsminusoneCalc(arma::cube prioreps, double K, double D, double maxNCat){
+arma::cube priorepsminusoneCalc(arma::mat prioreps, double K, double D, double maxNCat){
   arma::cube v(K, maxNCat, D);
   for (int l = 0; l < maxNCat; l++){
     for (int k = 0; k < K; k++){
       for(int d = 0; d < D; d++){
-        if (prioreps(k, l, d) != 0){
-          v(k, l, d) = prioreps(k, l, d) - 1;
+        if (prioreps(l, d) != 0){
+          v(k, l, d) = prioreps(l, d) - 1;
         } else{
           v(k, l, d) = 0;
         }
@@ -180,3 +186,21 @@ arma::cube epsminusoneCalc(arma::cube eps, double K, double D, double maxNCat){
   }
   return v;
 }
+
+// [[Rcpp::export(name = ".epsminuspriorepsCalc")]]
+arma::cube epsminuspriorepsCalc(arma::cube eps, arma::mat prioreps, double K, double D, double maxNCat){
+  arma::cube v(K, maxNCat, D);
+  for (int l = 0; l < maxNCat; l++){
+    for (int k = 0; k < K; k++){
+      for(int d = 0; d < D; d++){
+        if (eps(k, l, d) != 0){
+          v(k, l, d) = eps(k, l, d) - prioreps(l, d);
+        } else{
+          v(k, l, d) = 0;
+        }
+      }
+    }
+  }
+  return v;
+}
+

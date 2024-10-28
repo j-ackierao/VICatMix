@@ -42,8 +42,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // ElogphiLCalc
-arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat, arma::vec nCat);
-RcppExport SEXP _VICatMix_ElogphiLCalc(SEXP epsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP maxNCatSEXP, SEXP nCatSEXP) {
+arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat);
+RcppExport SEXP _VICatMix_ElogphiLCalc(SEXP epsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP maxNCatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -51,8 +51,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type K(KSEXP);
     Rcpp::traits::input_parameter< double >::type D(DSEXP);
     Rcpp::traits::input_parameter< double >::type maxNCat(maxNCatSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type nCat(nCatSEXP);
-    rcpp_result_gen = Rcpp::wrap(ElogphiLCalc(eps, K, D, maxNCat, nCat));
+    rcpp_result_gen = Rcpp::wrap(ElogphiLCalc(eps, K, D, maxNCat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -106,12 +105,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // CpriorepsCalc
-arma::mat CpriorepsCalc(arma::cube prioreps, double K, double D, arma::vec nCat);
+arma::mat CpriorepsCalc(arma::mat prioreps, double K, double D, arma::vec nCat);
 RcppExport SEXP _VICatMix_CpriorepsCalc(SEXP priorepsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP nCatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type prioreps(priorepsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type prioreps(priorepsSEXP);
     Rcpp::traits::input_parameter< double >::type K(KSEXP);
     Rcpp::traits::input_parameter< double >::type D(DSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type nCat(nCatSEXP);
@@ -120,16 +119,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // CpostepsCalc
-arma::mat CpostepsCalc(arma::cube eps, double K, double D, arma::vec nCat);
-RcppExport SEXP _VICatMix_CpostepsCalc(SEXP epsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP nCatSEXP) {
+arma::mat CpostepsCalc(arma::cube eps, double K, double D, double maxNCat);
+RcppExport SEXP _VICatMix_CpostepsCalc(SEXP epsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP maxNCatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::cube >::type eps(epsSEXP);
     Rcpp::traits::input_parameter< double >::type K(KSEXP);
     Rcpp::traits::input_parameter< double >::type D(DSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type nCat(nCatSEXP);
-    rcpp_result_gen = Rcpp::wrap(CpostepsCalc(eps, K, D, nCat));
+    Rcpp::traits::input_parameter< double >::type maxNCat(maxNCatSEXP);
+    rcpp_result_gen = Rcpp::wrap(CpostepsCalc(eps, K, D, maxNCat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -148,12 +147,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // priorepsminusoneCalc
-arma::cube priorepsminusoneCalc(arma::cube prioreps, double K, double D, double maxNCat);
+arma::cube priorepsminusoneCalc(arma::mat prioreps, double K, double D, double maxNCat);
 RcppExport SEXP _VICatMix_priorepsminusoneCalc(SEXP priorepsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP maxNCatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type prioreps(priorepsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type prioreps(priorepsSEXP);
     Rcpp::traits::input_parameter< double >::type K(KSEXP);
     Rcpp::traits::input_parameter< double >::type D(DSEXP);
     Rcpp::traits::input_parameter< double >::type maxNCat(maxNCatSEXP);
@@ -172,6 +171,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type D(DSEXP);
     Rcpp::traits::input_parameter< double >::type maxNCat(maxNCatSEXP);
     rcpp_result_gen = Rcpp::wrap(epsminusoneCalc(eps, K, D, maxNCat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// epsminuspriorepsCalc
+arma::cube epsminuspriorepsCalc(arma::cube eps, arma::mat prioreps, double K, double D, double maxNCat);
+RcppExport SEXP _VICatMix_epsminuspriorepsCalc(SEXP epsSEXP, SEXP priorepsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP maxNCatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type prioreps(priorepsSEXP);
+    Rcpp::traits::input_parameter< double >::type K(KSEXP);
+    Rcpp::traits::input_parameter< double >::type D(DSEXP);
+    Rcpp::traits::input_parameter< double >::type maxNCat(maxNCatSEXP);
+    rcpp_result_gen = Rcpp::wrap(epsminuspriorepsCalc(eps, prioreps, K, D, maxNCat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -435,7 +449,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_VICatMix_rnkCalc", (DL_FUNC) &_VICatMix_rnkCalc, 4},
     {"_VICatMix_ElogphiCalc", (DL_FUNC) &_VICatMix_ElogphiCalc, 6},
-    {"_VICatMix_ElogphiLCalc", (DL_FUNC) &_VICatMix_ElogphiLCalc, 5},
+    {"_VICatMix_ElogphiLCalc", (DL_FUNC) &_VICatMix_ElogphiLCalc, 4},
     {"_VICatMix_logrhonkCalc", (DL_FUNC) &_VICatMix_logrhonkCalc, 5},
     {"_VICatMix_epsCalc", (DL_FUNC) &_VICatMix_epsCalc, 7},
     {"_VICatMix_firstepsCalc", (DL_FUNC) &_VICatMix_firstepsCalc, 7},
@@ -444,6 +458,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VICatMix_sumDElogphiCalc", (DL_FUNC) &_VICatMix_sumDElogphiCalc, 4},
     {"_VICatMix_priorepsminusoneCalc", (DL_FUNC) &_VICatMix_priorepsminusoneCalc, 4},
     {"_VICatMix_epsminusoneCalc", (DL_FUNC) &_VICatMix_epsminusoneCalc, 4},
+    {"_VICatMix_epsminuspriorepsCalc", (DL_FUNC) &_VICatMix_epsminuspriorepsCalc, 5},
     {"_VICatMix_cmatrixCalc", (DL_FUNC) &_VICatMix_cmatrixCalc, 5},
     {"_VICatMix_ElogthetaCalcCat", (DL_FUNC) &_VICatMix_ElogthetaCalcCat, 3},
     {"_VICatMix_betaCalc", (DL_FUNC) &_VICatMix_betaCalc, 6},
