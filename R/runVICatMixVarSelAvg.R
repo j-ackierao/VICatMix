@@ -126,8 +126,8 @@ runVICatMixVarSelAvg <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.
     for (j in 1:dim(data)[2]){
       psmselect[j] <- sum(psmvariables[,j]) / inits
     }
-    psmselect[psmvariables > var_threshold] <- 1
-    psmselect[psmvariables <= var_threshold] <- 0
+    psmselect[psmselect > var_threshold] <- 1
+    psmselect[psmselect <= var_threshold] <- 0
 
   
   final_result <- list()
