@@ -32,8 +32,8 @@
 #'
 #' @examples
 #' # example code
-#' \dontrun{set.seed(15)
-#' generatedData <- generateSampleDataBin(100, 4, c(0.1, 0.2, 0.3, 0.4), 25, 0)
+#' \dontrun{set.seed(20)
+#' generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 100, 0)
 #' result <- runVICatMixAvg(generatedData$data, 10, 0.01, inits = 10)
 #'
 #' print(result$labels_avg)}
@@ -42,7 +42,6 @@
 #'
 #' @seealso \code{\link{runVICatMix}}
 #'
-#' @importFrom mcclust.ext minVI
 #' @importFrom mcclust medv
 #' @importFrom mcclust comp.psm
 #' @export
@@ -95,9 +94,9 @@ runVICatMixAvg <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, ini
   psm <- mcclust::comp.psm(p1)
   
   if (loss == "VoIavg"){
-    labels_avg <- mcclust.ext::minVI(psm, method = 'avg',max.k = K)$cl
+    labels_avg <- minVI(psm, method = 'avg',max.k = K)$cl
   } else if (loss == "VoIcomp"){
-    labels_avg <- mcclust.ext::minVI(psm, method = 'comp',max.k = K)$cl
+    labels_avg <- minVI(psm, method = 'comp',max.k = K)$cl
   } else if (loss == "medv"){
     labels_avg <- mcclust::medv(psm)
     }
