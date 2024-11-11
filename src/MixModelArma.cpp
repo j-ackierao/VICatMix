@@ -1,4 +1,5 @@
 #include <RcppArmadillo.h> // new 'lighter' header
+#include <boost/math/special_functions/digamma.hpp>
 
 // Functions in RcppArmadillo for original variational mixture model
 
@@ -14,7 +15,7 @@ arma::cube ElogphiCalc(arma::cube eps, double K, double D, double N, double maxN
       }
       for (int n = 0; n < N; n++){
         double j = X(n, d);
-        v(k, d, n) = R::digamma(eps(k, j-1, d)) - R::digamma(sum);
+        v(k, d, n) = boost::math::digamma(eps(k, j-1, d)) - boost::math::digamma(sum);
       }
     }
   }
@@ -32,7 +33,7 @@ arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat){
       }
       for (int l = 0; l < maxNCat; l++){
         if (eps(k, l, d) != 0){
-          v(k, l, d) = R::digamma(eps(k, l, d)) - R::digamma(sum);
+          v(k, l, d) = boost::math::digamma(eps(k, l, d)) - boost::math::digamma(sum);
         } else{
           v(k, l, d) = 0;
         }

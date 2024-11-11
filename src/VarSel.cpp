@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <boost/math/special_functions/digamma.hpp>
 using namespace Rcpp;
 
 // Functions in Rcpp for variational mixture model with variable selection
@@ -23,7 +24,7 @@ NumericMatrix ElogthetaCalcCat(NumericMatrix beta, double K, double J) {
       sum += beta(k, j);
     }
     for (int j = 0; j < J; j++){
-      v(k, j) = R::digamma(beta(k, j)) - R::digamma(sum);
+      v(k, j) = boost::math::digamma(beta(k, j)) - boost::math::digamma(sum);
     }
   }
   return v;
