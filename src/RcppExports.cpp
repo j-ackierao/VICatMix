@@ -105,16 +105,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // CpriorepsCalc
-arma::mat CpriorepsCalc(arma::mat prioreps, double K, double D, arma::vec nCat);
-RcppExport SEXP _VICatMix_CpriorepsCalc(SEXP priorepsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP nCatSEXP) {
+arma::mat CpriorepsCalc(arma::mat prioreps, double K, double D, double maxNCat);
+RcppExport SEXP _VICatMix_CpriorepsCalc(SEXP priorepsSEXP, SEXP KSEXP, SEXP DSEXP, SEXP maxNCatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type prioreps(priorepsSEXP);
     Rcpp::traits::input_parameter< double >::type K(KSEXP);
     Rcpp::traits::input_parameter< double >::type D(DSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type nCat(nCatSEXP);
-    rcpp_result_gen = Rcpp::wrap(CpriorepsCalc(prioreps, K, D, nCat));
+    Rcpp::traits::input_parameter< double >::type maxNCat(maxNCatSEXP);
+    rcpp_result_gen = Rcpp::wrap(CpriorepsCalc(prioreps, K, D, maxNCat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -189,6 +189,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ElogthetaCalcCat
+arma::mat ElogthetaCalcCat(arma::mat beta, double K, double J);
+RcppExport SEXP _VICatMix_ElogthetaCalcCat(SEXP betaSEXP, SEXP KSEXP, SEXP JSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< double >::type K(KSEXP);
+    Rcpp::traits::input_parameter< double >::type J(JSEXP);
+    rcpp_result_gen = Rcpp::wrap(ElogthetaCalcCat(beta, K, J));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cmatrixCalc
 NumericMatrix cmatrixCalc(NumericMatrix nullphi, NumericMatrix X, NumericVector c, double N, double D);
 RcppExport SEXP _VICatMix_cmatrixCalc(SEXP nullphiSEXP, SEXP XSEXP, SEXP cSEXP, SEXP NSEXP, SEXP DSEXP) {
@@ -201,19 +214,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type N(NSEXP);
     Rcpp::traits::input_parameter< double >::type D(DSEXP);
     rcpp_result_gen = Rcpp::wrap(cmatrixCalc(nullphi, X, c, N, D));
-    return rcpp_result_gen;
-END_RCPP
-}
-// ElogthetaCalcCat
-NumericMatrix ElogthetaCalcCat(NumericMatrix beta, double K, double J);
-RcppExport SEXP _VICatMix_ElogthetaCalcCat(SEXP betaSEXP, SEXP KSEXP, SEXP JSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< double >::type K(KSEXP);
-    Rcpp::traits::input_parameter< double >::type J(JSEXP);
-    rcpp_result_gen = Rcpp::wrap(ElogthetaCalcCat(beta, K, J));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -459,8 +459,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VICatMix_priorepsminusoneCalc", (DL_FUNC) &_VICatMix_priorepsminusoneCalc, 4},
     {"_VICatMix_epsminusoneCalc", (DL_FUNC) &_VICatMix_epsminusoneCalc, 4},
     {"_VICatMix_epsminuspriorepsCalc", (DL_FUNC) &_VICatMix_epsminuspriorepsCalc, 5},
-    {"_VICatMix_cmatrixCalc", (DL_FUNC) &_VICatMix_cmatrixCalc, 5},
     {"_VICatMix_ElogthetaCalcCat", (DL_FUNC) &_VICatMix_ElogthetaCalcCat, 3},
+    {"_VICatMix_cmatrixCalc", (DL_FUNC) &_VICatMix_cmatrixCalc, 5},
     {"_VICatMix_betaCalc", (DL_FUNC) &_VICatMix_betaCalc, 6},
     {"_VICatMix_CpriorbetaCalc", (DL_FUNC) &_VICatMix_CpriorbetaCalc, 3},
     {"_VICatMix_CpostbetaCalc", (DL_FUNC) &_VICatMix_CpostbetaCalc, 3},

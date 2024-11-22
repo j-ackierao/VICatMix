@@ -1,5 +1,5 @@
 #include <RcppArmadillo.h> // new 'lighter' header
-#include <boost/math/special_functions/digamma.hpp>
+#include "digamma.h"
 
 // Functions in RcppArmadillo for original variational mixture model
 
@@ -13,9 +13,10 @@ arma::cube ElogphiCalc(arma::cube eps, double K, double D, double N, double maxN
       for(int i = 0; i < maxNCat; i++){
         sum += eps(k, i, d);
       }
+      double digsum = digamma(sum);
       for (int n = 0; n < N; n++){
         double j = X(n, d);
-        v(k, d, n) = boost::math::digamma(eps(k, j-1, d)) - boost::math::digamma(sum);
+        v(k, d, n) = digamma(eps(k, j-1, d)) - digsum;
       }
     }
   }
@@ -31,9 +32,10 @@ arma::cube ElogphiLCalc(arma::cube eps, double K, double D, double maxNCat){
       for(int i = 0; i < maxNCat; i++){
         sum += eps(k, i, d);
       }
+      double digsum = digamma(sum);
       for (int l = 0; l < maxNCat; l++){
         if (eps(k, l, d) != 0){
-          v(k, l, d) = boost::math::digamma(eps(k, l, d)) - boost::math::digamma(sum);
+          v(k, l, d) = digamma(eps(k, l, d)) - digsum;
         } else{
           v(k, l, d) = 0;
         }
@@ -97,24 +99,24 @@ arma::cube firstepsCalc(double K, double maxNCat, double D, double N, arma::mat 
 }
 
 // [[Rcpp::export(name = ".CpriorepsCalc")]]
-arma::mat CpriorepsCalc(arma::mat prioreps, double K, double D, arma::vec nCat){
+arma::mat CpriorepsCalc(arma::mat prioreps, double K, double D, double maxNCat){
   arma::mat v(K, D);
   for (int d = 0; d < D; d++){
-    double varCat = nCat(d);
     for (int k = 0; k < K; k++){
       double sum1 = 0; // Sum value
-      for(int j = 0; j < varCat; j++){
-        sum1 += prioreps(j, d);
-      }
       double sum2 = 0;
-      for (int j = 0; j < varCat; j++){
-        sum2 += lgamma(prioreps(j, d));
+      for(int j = 0; j < maxNCat; j++){
+        if (prioreps(j, d) != 0){
+          sum1 += prioreps(j, d);
+          sum2 += lgamma(prioreps(j, d));
+        }
       }
       v(k, d) = lgamma(sum1) - sum2;
     }
   }
   return v;
 }
+
 
 // [[Rcpp::export(name = ".CpostepsCalc")]]
 arma::mat CpostepsCalc(arma::cube eps, double K, double D, double maxNCat){
@@ -200,6 +202,22 @@ arma::cube epsminuspriorepsCalc(arma::cube eps, arma::mat prioreps, double K, do
           v(k, l, d) = 0;
         }
       }
+    }
+  }
+  return v;
+}
+
+// [[Rcpp::export(name = ".ElogthetaCalcCat")]]
+arma::mat ElogthetaCalcCat(arma::mat beta, double K, double J) {
+  arma::mat v(K, J);
+  for (int k = 0; k < K; k++){
+    double sum = 0; // Sum value
+    for (int j = 0; j < J; j++){
+      sum += beta(k, j);
+    }
+    double digsum = digamma(sum);
+    for (int j = 0; j < J; j++){
+      v(k, j) = digamma(beta(k, j)) - digsum;
     }
   }
   return v;

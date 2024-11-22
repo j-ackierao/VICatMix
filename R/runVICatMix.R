@@ -110,7 +110,6 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
   
   for (iter in 1:maxiter){
     model = .expectStep(X, model) #Expectation step
-    .GlobalEnv$maxNCat <- maxNCat
     model = .maxStep(X, model, prior) #Maximisation step
     ELBO[iter] = .ELBOCalcMStep(X, model, prior) #ELBO
     Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
@@ -138,8 +137,7 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
   N = dim(X)[1]
   D = dim(X)[2]
   K = length(model$alpha)
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
+  maxNCat = dim(model$eps)[[2]]
   
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) #k dim vector, expectation of log pi k
   
@@ -170,8 +168,7 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
   N = dim(X)[1]
   D = dim(X)[2]
   K = length(model$alpha)
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
+  maxNCat = dim(model$eps)[[2]]
   
   #Parameters for pi update - Dirichlet
   alpha <- prioralpha + colSums(rnk)
@@ -209,6 +206,7 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
   N = dim(X)[1]
   D = dim(X)[2]
   K = length(model$alpha)
+  maxNCat = dim(model$eps)[[2]]
   
   prior2 = list(alpha = rep(prior$alpha, K),
                 eps = t(prior$eps))
@@ -219,9 +217,6 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
   eps <- model$eps
   rnk <- model$rnk
   
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
-  
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) #Taken from E step
   ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat)
   
@@ -230,7 +225,7 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
   #(log) normalising constants of Dirichlet
   Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
   Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
-  Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
+  Cprioreps <- .CpriorepsCalc(prioreps, K, D, maxNCat)
   Cposteps <- .CpostepsCalc(eps, K, D, maxNCat)
   
   #Matrix of epsilon parameters -1, where all 0's remain 0 (as these are unused parameters)

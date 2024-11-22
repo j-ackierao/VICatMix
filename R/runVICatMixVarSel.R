@@ -149,7 +149,6 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   if (is.na(outcome)){
     for (iter in 1:maxiter){
       model = .expectStepVarSel(X, model) #Expectation step
-      .GlobalEnv$maxNCat <- maxNCat
       model = .maxStepVarSel(X, model, prior) #Maximisation step
       ELBO[iter] = .ELBOCalcVarSelMStep(X, model, prior) #ELBO
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
@@ -196,8 +195,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   N = dim(X)[1]
   D = dim(X)[2]
   K = length(model$alpha)
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
+  maxNCat = dim(model$eps)[[2]]
   
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) #k dim vector, expectation of log pi k
   
@@ -236,8 +234,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   N = dim(X)[1]
   D = dim(X)[2]
   K = length(model$alpha)
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
+  maxNCat = dim(model$eps)[[2]]
   
   #Parameters for pi update - Dirichlet
   alpha <- prioralpha + colSums(rnk)
@@ -282,8 +279,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   D = dim(X)[2]
   K = length(model$alpha)
   J = dim(beta)[2]
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
+  maxNCat = dim(model$eps)[[2]]
   
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) #k dim vector, expectation of log pi k
   Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
@@ -323,8 +319,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   D = dim(X)[2]
   K = length(model$alpha)
   J = dim(model$beta)[2]
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
+  maxNCat = dim(model$eps)[[2]]
   
   #Parameters for pi update - Dirichlet
   alpha <- prioralpha + colSums(rnk)
@@ -361,6 +356,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   N = dim(X)[1]
   D = dim(X)[2]
   K = length(model$alpha)
+  maxNCat = dim(model$eps)[[2]]
   
   prior2 = list(alpha = rep(prior$alpha, K),
                 eps = t(prior$eps))
@@ -374,9 +370,6 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   c <- model$c
   nullphi <- model$nullphi
   
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
-  
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
   Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
   ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat)
@@ -389,7 +382,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   #(log) normalising constants of Dirichlet
   Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
   Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
-  Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
+  Cprioreps <- .CpriorepsCalc(prioreps, K, D, maxNCat)
   Cposteps <- .CpostepsCalc(eps, K, D, maxNCat)
   Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
   Cpostdelta <- as.vector(.CpostdeltaCalc(c, a, D))
@@ -444,6 +437,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   D = dim(X)[2]
   J = dim(model$beta)[2]
   K = length(model$alpha)
+  maxNCat = dim(model$eps)[[2]]
   
   prior2 = list(alpha = rep(prior$alpha, K),
                 eps = t(prior$eps))
@@ -459,9 +453,6 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   nullphi <- model$nullphi
   beta <- model$beta
   
-  nCat <- as.vector(apply(X, 2, max)) #number of categories in each variable
-  maxNCat <- max(nCat)
-  
   Elogpi <- digamma(alpha) - digamma(sum(alpha)) 
   Elogphi <- .ElogphiCalc(eps, K, D, N, maxNCat, X)
   ElogphiL <- .ElogphiLCalc(eps, K, D, maxNCat)
@@ -474,7 +465,7 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   
   Cprioralpha <- lgamma(sum(prioralpha)) - sum(lgamma(prioralpha))
   Cpostalpha <- lgamma(sum(alpha)) - sum(lgamma(alpha))
-  Cprioreps <- .CpriorepsCalc(prioreps, K, D, nCat)
+  Cprioreps <- .CpriorepsCalc(prioreps, K, D, maxNCat)
   Cposteps <- .CpostepsCalc(eps, K, D, maxNCat)
   Cpriordelta <- lgamma(a + a) - 2 * lgamma(a)
   Cpostdelta <- .CpostdeltaCalc(c, a, D)

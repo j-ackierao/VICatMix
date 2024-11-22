@@ -25,8 +25,8 @@
     .Call(`_VICatMix_firstepsCalc`, K, maxNCat, D, N, prioreps, X, clusterInit)
 }
 
-.CpriorepsCalc <- function(prioreps, K, D, nCat) {
-    .Call(`_VICatMix_CpriorepsCalc`, prioreps, K, D, nCat)
+.CpriorepsCalc <- function(prioreps, K, D, maxNCat) {
+    .Call(`_VICatMix_CpriorepsCalc`, prioreps, K, D, maxNCat)
 }
 
 .CpostepsCalc <- function(eps, K, D, maxNCat) {
@@ -49,12 +49,12 @@
     .Call(`_VICatMix_epsminuspriorepsCalc`, eps, prioreps, K, D, maxNCat)
 }
 
-.cmatrixCalc <- function(nullphi, X, c, N, D) {
-    .Call(`_VICatMix_cmatrixCalc`, nullphi, X, c, N, D)
-}
-
 .ElogthetaCalcCat <- function(beta, K, J) {
     .Call(`_VICatMix_ElogthetaCalcCat`, beta, K, J)
+}
+
+.cmatrixCalc <- function(nullphi, X, c, N, D) {
+    .Call(`_VICatMix_cmatrixCalc`, nullphi, X, c, N, D)
 }
 
 .betaCalc <- function(priorbeta, y, K, J, N, rnk) {
