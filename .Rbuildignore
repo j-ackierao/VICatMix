@@ -1,4 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^LICENSE\.md$
 ^data-raw$
+^\\.(RData|Rhistory)$
+^\\.Rbuildignore$
+(^|/)\\.DS_Store$
