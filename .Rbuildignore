@@ -4,3 +4,4 @@
 ^\\.(RData|Rhistory)$
 ^\\.Rbuildignore$
 (^|/)\\.DS_Store$
+^LICENSE\.md$
