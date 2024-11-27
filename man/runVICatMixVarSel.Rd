@@ -71,7 +71,7 @@ semi-supervised profile regression.
 \examples{
 # example code
 
-\dontrun{set.seed(12)
+\donttest{set.seed(12)
 generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 90, 10)
 result <- runVICatMixVarSel(generatedData$data, 10, 0.01)
 

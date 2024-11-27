@@ -78,7 +78,7 @@ averaging/summarisation over multiple initialisations.
 \examples{
 # example code
 
-\dontrun{set.seed(12)
+\donttest{set.seed(12)
 generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 40, 10)
 result <- runVICatMixVarSelAvg(generatedData$data, 10, 0.01, inits = 10)
 

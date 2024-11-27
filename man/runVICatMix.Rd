@@ -51,7 +51,7 @@ selection imposed.
 }
 \examples{
 # example code
-\dontrun{set.seed(20)
+\donttest{set.seed(20)
 generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 100, 0)
 result <- runVICatMix(generatedData$data, 10, 0.01)
 

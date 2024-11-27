@@ -43,7 +43,7 @@ Sara Wade, \email{sara.wade@ed.ac.uk}
 \code{\link{minVI}} which locates the partition that minimizes the posterior expected modified VoI.
 }
 \examples{
-\dontrun{set.seed(15)
+\donttest{set.seed(15)
 generatedData <- generateSampleDataBin(100, 4, c(0.1, 0.2, 0.3, 0.4), 25, 0)
 resultforpsm <- list()
 for (i in 1:5){ #use 5 initialisations

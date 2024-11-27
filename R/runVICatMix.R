@@ -38,7 +38,7 @@
 #'
 #' @examples
 #' # example code
-#' \dontrun{set.seed(20)
+#' \donttest{set.seed(20)
 #' generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 100, 0)
 #' result <- runVICatMix(generatedData$data, 10, 0.01)
 #'
@@ -187,11 +187,11 @@ runVICatMix <- function(data, K, alpha, maxiter = 2000, tol = 0.00000005, verbos
 .check_convergence<- function(ELBO, iter, maxiter, tol){
   if (iter > 1 && abs(ELBO[iter] - ELBO[iter - 1]) < tol && abs(ELBO[iter-1] - ELBO[iter-2] < tol) && 
       abs(ELBO[iter-2] - ELBO[iter-3] < tol)){
-    cat("Stopped after iteration",iter, "\n", sep = " ") #make sure the last 3 ELBOs close to each other
+    message("Stopped after iteration ",iter) #make sure the last 3 ELBOs close to each other
     return(TRUE)
   }
   if (iter == maxiter){
-    cat("Not converged after maximum number of iterations")
+    warning("Not converged after maximum number of iterations")
     return(TRUE)
   }
   else{

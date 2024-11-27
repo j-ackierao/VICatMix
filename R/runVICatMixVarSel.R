@@ -47,7 +47,7 @@
 #' @examples
 #' # example code
 #'
-#' \dontrun{set.seed(12)
+#' \donttest{set.seed(12)
 #' generatedData <- generateSampleDataBin(500, 4, c(0.1, 0.2, 0.3, 0.4), 90, 10)
 #' result <- runVICatMixVarSel(generatedData$data, 10, 0.01)
 #'
@@ -164,7 +164,6 @@ runVICatMixVarSel <- function(data, K, alpha, a = 2, maxiter = 2000, tol = 0.000
   if (!is.na(outcome)){
     for (iter in 1:maxiter){
       model = .expectStepProfCat(X, model) #Expectation step
-      .GlobalEnv$maxNCat <- maxNCat
       model = .maxStepProfCat(X, model, prior) #Maximisation step
       ELBO[iter] = .ELBOCalcProfCatMStep(X, model, prior) #ELBO
       Cl[iter] = length(unique(model$labels)) #Counts number of non-empty clusters
